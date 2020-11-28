@@ -13,10 +13,11 @@ module.exports = {
 		return await db.insert(obj);
 	},
 
-	save: async (bot, user, data, stage) => {
+	save: async (bot, user, data, stage, mid = null) => {
 		const db = bot.m.get("wizards");
 		
-		return await db.findOneAndUpdate({ userID: user.id}, { $set: { data, stage } });
+		if (mid) return await db.findOneAndUpdate({ userID: user.id}, { $set: { data, stage, messageID: mid } });
+		else return await db.findOneAndUpdate({ userID: user.id}, { $set: { data, stage } });
 	},
 
 	remove: async (bot, user) => {
