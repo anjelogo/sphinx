@@ -30,18 +30,24 @@ module.exports = async (bot, user, m) => {
 		"looking": "782170741012430861"
 	};
 
+	const gender = {
+		"male": "782197925114806282",
+		"female": "782197952616988703"
+	};
+
 	let rolesToBeAdded = [];
 	rolesToBeAdded.push(prg[obj.preference.gender]);
 	rolesToBeAdded.push(prr[obj.preference.status]);
+	rolesToBeAdded.push(gender[obj.gender]);
+	rolesToBeAdded.push(roles.clearance);
 
 	try {
 		rolesToBeAdded.forEach(r => {
 			guild.addMemberRole(user.id, r);
 		});
-		guild.addMemberRole(user.id, roles.clearance);
 		if (user.id !== guild.ownerID) guild.members.get(user.id).edit({ nick: name });
 		await m.channel.createMessage({ embed });
-		await newProfiles.createMessage({ content: user.mention, embed });
+		await newProfiles.createMessage({ content: `<@${user.id}>`, embed });
 		m.edit({ embed: { description: "Your profile was sucessfully created! You can view it in <#781789257094004736>.", color: colors.green } });
 		setTimeout(() => m.delete(), 5000);
 	} catch(e) {

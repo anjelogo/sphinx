@@ -8,7 +8,8 @@ module.exports = async (bot, user, msg) => {
 	let obj = {
 		name: {},
 		createdAt: Date.now(),
-		avatarURL: user.avatarURL
+		avatarURL: user.avatarURL,
+		lastBumped: Date.now()
 	};
 
 	let embed = {
