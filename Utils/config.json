@@ -1,0 +1,35 @@
+{
+	"name": "Sphinx",
+	"defaultPrefix": "!",
+	"maxChannelSize": 3,
+	"developers": [
+		"318942726198525952",
+		"195471864187977728"
+	],
+	"colors": {
+		"winered": 7483191,
+		"embedColor": 16766720,
+		"male": 255,
+		"female": 16711935,
+		"red": 16711680,
+		"green": 3329330
+	},
+	"overwrites": {
+		"default": {
+			"allow": 36818496,
+			"deny": 1024
+		}
+	},
+	"guildID": "780603750825721866",
+	"channels": {
+		"matchDefault": "780603755053449281",
+		"matchVerified": "780626472632975420",
+		"matchVIP": "780626547610615848",
+		"queue": "781078773545828363",
+		"queueCategory": "781366033311203328",
+		"newProfiles": "781789257094004736"
+	},
+	"roles": {
+		"clearance": "781782436869701643"
+	}
+}
