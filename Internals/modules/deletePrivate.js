@@ -1,6 +1,6 @@
-const Config = require("../../Utils/config.json");
-const { warning } = require("../../Utils/emojis.json");
-const { isDeveloper } = require("../../Utils/util");
+const Config = require("../../Utils/config.json"),
+	{ warning } = require("../../Utils/emojis.json"),
+	{ isDeveloper } = require("../../Utils/util");
 
 module.exports = async (bot, member, channel) => {
 	const cat = member.guild.channels.get(channel.parentID);

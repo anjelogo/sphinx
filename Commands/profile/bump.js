@@ -1,5 +1,5 @@
 const Profile = require("../../Internals/handlers/profileHandler");
-//const moment = require("moment");
+const moment = require("moment");
 const Emojis = require("../../Utils/emojis.json");
 const { guildID, channels } = require("../../Utils/config.json");
 

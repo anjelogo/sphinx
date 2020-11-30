@@ -22,6 +22,7 @@ module.exports = async (bot, user, m) => {
 	const prg = {
 		"male": "781824302252032011",
 		"female": "781824472361336882",
+		"none": "782465555209912351"
 	};
 
 	const prr = {

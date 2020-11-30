@@ -69,7 +69,7 @@ module.exports = {
 
 			try {
 				await member.roles.forEach(r => member.removeRole(r));
-				await member.edit({ nick: null })
+				if (user.id !== msg.guild.ownerID) await member.edit({ nick: null });
 				await Profile.delete(bot, user);
 			} catch(e) {
 				await m.edit(`${Emojis.warning.red} There was an error while trying to delete \`${name}\`'s profile.`);
@@ -77,6 +77,7 @@ module.exports = {
 			}
 
 			m.edit(`${Emojis.tick} I've successfully deleted \`${name}\`'s profile.`);
+			user.createMessage({ embed: { description: `${Emojis.warning.red} Your profile was deleted by ${msg.author.username}`, color: Config.colors.red } });
 			break;
 		}
 		case "modmode": {
@@ -88,7 +89,7 @@ module.exports = {
 			await db.findOneAndUpdate({ text: msg.channel.id }, { $set: { modMode: true } });
 			msg.channel.createMessage(`${Emojis.tick} This channel is now in modmode.`);
 			break;
-		};
+		}
 		default: return msg.channel.createMessage(`${Emojis.x} Invalid Subcommand, check help for this command.`);
 		}
 

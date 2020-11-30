@@ -1,15 +1,14 @@
-const { colors } = require("../../../Utils/config.json");
-const Emojis = require("../../../Utils/emojis.json");
-const Wizard = require("./wizard");
-const { calculate_age, clean } = require("../../../Utils/util");
+const { colors } = require("../../../Utils/config.json"),
+	{ calculate_age, clean } = require("../../../Utils/util"),
+	Emojis = require("../../../Utils/emojis.json"),
+	Wizard = require("./wizard");
 
 module.exports = async (bot, user, msg) => {
 
-	let obj = {
-		name: {},
-		createdAt: Date.now(),
-		avatarURL: user.avatarURL,
-		lastBumped: Date.now()
+	const cancelled = {
+		title: "Cancelled Profile Creator",
+		description: "I've cancelled creating your profile.",
+		color: colors.red 
 	};
 
 	let embed = {
@@ -22,10 +21,13 @@ module.exports = async (bot, user, msg) => {
 		fields: []
 	};
 
-	let cancelled = {
-		title: "Cancelled Profile Creator",
-		description: "I've cancelled creating your profile.",
-		color: colors.red 
+	let obj = {
+		name: {},
+		createdAt: Date.now(),
+		avatarURL: user.avatarURL,
+		lastBumped: Date.now(),
+		locked: false,
+		verified: false
 	};
 
 	embed.fields.push({
@@ -101,7 +103,7 @@ module.exports = async (bot, user, msg) => {
 	});
 	await m.edit({ embed });
 
-	let description = await channel.awaitMessages(m => m.author.id === user.id, { maxMatches: 1, time: 30000});
+	let description = await channel.awaitMessages(m => m.author.id === user.id, { maxMatches: 1, time: 60000});
 	if (!description.length || description[0].content.toLowerCase() === "cancel") {
 		await Wizard.remove(bot, user);
 		return m.edit({ embed: cancelled });
@@ -113,11 +115,51 @@ module.exports = async (bot, user, msg) => {
 		value: obj.description
 	};
 
+	//Looking For
+	embed.fields.push({
+		name: "What are you looking for?",
+		value: "**Type it in chat.**"
+	});
+	await m.edit({ embed });
+
+	let lookingfor = await channel.awaitMessages(m => m.author.id === user.id, { maxMatches: 1, time: 60000});
+	if (!lookingfor.length || lookingfor[0].content.toLowerCase() === "cancel") {
+		await Wizard.remove(bot, user);
+		return m.edit({ embed: cancelled });
+	}
+
+	obj.lookingfor = clean(lookingfor[0].content);
+	embed.fields[3] = {
+		name: "Looking for",
+		value: obj.lookingfor
+	};
+
+	//Hobbies
+	embed.fields.push({
+		name: "What are your hobbies?",
+		value: "**Type it in chat.**"
+	});
+	await m.edit({ embed });
+
+	let hobbies = await channel.awaitMessages(m => m.author.id === user.id, { maxMatches: 1, time: 60000});
+	if (!hobbies.length || /(cancel|none)/i.test(hobbies[0].content)) {
+		await Wizard.remove(bot, user);
+		return m.edit({ embed: cancelled });
+	}
+
+	obj.hobbies = clean(hobbies[0].content);
+	embed.fields[4] = {
+		name: "Your hobbies",
+		value: obj.hobbies
+	};
+
 	//Stage 2: Gender and reactions
 	embed.fields.push({
 		name: "What is your gender?",
 		value: "**React with the reactions**"
 	});
+
+	embed.fields[5].value += "\n\n♂️ - **Male**\n♀️ - **Female**\n❌ - `Cancel`";
 
 	await m.edit({ embed });
 

@@ -51,11 +51,14 @@ module.exports = {
 
 		u1.roles.filter(r => roles.includes(r)).forEach(r => arr.push(r) && i++);
 		u2.roles.filter(r => roles.includes(r)).forEach(r => arr.push(r) && j++);
+		if (u1d.profile.preference.gender !== "none") i++;
+		if (u2d.profile.preference.gender !== "none") j++;
 
 		let common = {};
 		let inCommon = 0;
 		arr.forEach(r => common[r] = (common[r] || 0) + 1);
 		Object.keys(common).forEach(c => common[c] > 1 ? inCommon++ : null);
+		if (u2d.profile.gender === u1d.profile.preference.gender && u1d.profile.gender === u2d.profile.preference.gender) inCommon++;
 
 		const med = (array) => {
 			array.sort((a, b) => {

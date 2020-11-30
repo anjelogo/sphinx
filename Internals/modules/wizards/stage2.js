@@ -29,14 +29,14 @@ module.exports = async (bot, user, emoji) => {
 	if (emoji.name === "♂️") {
 		await m.delete();
 		obj.gender = "male";
-		embed.fields[3] = {
+		embed.fields[5] = {
 			name: "Your gender",
 			value: "♂️ Male"
 		};
 	} else if (emoji.name === "♀️") {
 		await m.delete();
 		obj.gender = "female";
-		embed.fields[3] = {
+		embed.fields[5] = {
 			name: "Your gender",
 			value: "♀️ Female"
 		};
@@ -50,10 +50,13 @@ module.exports = async (bot, user, emoji) => {
 		value: "What is your preferred gender?\n\n**React with the reactions below.**"
 	});
 
+	embed.fields[6].value += "\n\n♂️ - **Male**\n♀️ - **Female**\n🚫 - **None**\n❌ - `Cancel`";
+
 	m = await channel.createMessage({ embed });
 
 	m.addReaction("♂️");
 	m.addReaction("♀️");
+	m.addReaction("🚫");
 	m.addReaction("❌");
 
 	return await Wizard.save(bot, user, obj, 3, m.id);

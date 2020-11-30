@@ -1,13 +1,18 @@
-const Config = require("../../Utils/config.json");
-const { findRole } = require("../../Utils/util");
-const { fetch } = require("../handlers/profileHandler");
+const Config = require("../../Utils/config.json"),
+	{ findRole } = require("../../Utils/util"),
+	{ fetch } = require("../handlers/profileHandler");
 
 module.exports = async (bot, user1, user2) => {
 	const guild = user1.guild;
 	let channels = bot.m.get("channels");
 
-	let data1 = await fetch(bot, user1);
-	let data2 = await fetch(bot, user2);
+	let check1 = await channels.findOne({ userID: user1.id }),
+		check2 = await channels.findOne({	userID: user2.id });
+
+	if (!check1 || !check2) return;
+
+	let data1 = await fetch(bot, user1),
+		data2 = await fetch(bot, user2);
 
 	let cat = await guild.createChannel(`${data1.profile.name.first} and ${data2.profile.name.first}'s Private Channel`, 4, {
 		permissionOverwrites: [

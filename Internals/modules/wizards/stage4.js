@@ -30,21 +30,21 @@ module.exports = async (bot, user, emoji) => {
 	if (emoji.name === "🧍") {
 		await m.delete();
 		obj.preference.status = "single";
-		embed.fields[4] = {
+		embed.fields[6] = {
 			name: "Preferences",
 			value: `Preferred Gender: ${obj.preference.gender === "male" ? "♂️ **Male**" : "♀️ **Female**"}\nRelationship Status: 🧍 **Single**`
 		};
 	} else if (emoji.name === "🧑‍🤝‍🧑") {
 		await m.delete();
 		obj.preference.status = "taken";
-		embed.fields[4] = {
+		embed.fields[6] = {
 			name: "Preferences",
 			value: `Preferred Gender: ${obj.preference.gender === "male" ? "♂️ **Male**" : "♀️ **Female**"}\nRelationship Status: 🧑‍🤝‍🧑 **Taken**`
 		};
 	} else if (emoji.name === "👀") {
 		await m.delete();
 		obj.preference.status = "looking";
-		embed.fields[4] = {
+		embed.fields[6] = {
 			name: "Preferences",
 			value: `Preferred Gender: ${obj.preference.gender === "male" ? "♂️ **Male**" : "♀️ **Female**"}\nRelationship Status: 👀 **Looking**`
 		};
@@ -53,7 +53,7 @@ module.exports = async (bot, user, emoji) => {
 		return m.edit({ embed: cancelled });
 	}
 
-	embed.fields[4].value += "\n\n**Head to <#781819428736204821> for more preferences.**";
+	embed.fields[6].value += "\n\n**Head to <#781819428736204821> for more preferences.**";
 
 	m = await channel.createMessage({ embed });
 

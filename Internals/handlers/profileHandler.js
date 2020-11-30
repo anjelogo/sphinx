@@ -1,5 +1,5 @@
-const { colors } = require("../../Utils/config.json");
-const { findUser, findMember } = require("../../Utils/util");
+const { colors } = require("../../Utils/config.json"),
+	{ findUser, findMember, calculate_age } = require("../../Utils/util");
 
 module.exports = {
 
@@ -57,27 +57,47 @@ module.exports = {
 	},
 
 	embed: async (bot, user) => {
-		const db = bot.m.get("profiles");
-		const data = await db.findOne({ userID: user.id });
-		const pr = data.profile;
+		const db = bot.m.get("profiles"),
+			data = await db.findOne({ userID: user.id }),
+			pr = data.profile;
 
 		let obj = {
 			author: {
 				icon_url: pr.avatarURL,
 				name: `${pr.name.first} ${pr.name.last}`
 			},
-			image: {
-				url: pr.avatarURL,
-				height: 350,
-				width: 350
+			thumbnail: {
+				url: pr.avatarURL
 			},
 			fields: [
 				{
-					name: "Biography",
+					name: "Gender",
+					value: pr.gender === "male" ? "♂️ **Male**" : "♀️ **Female**",
+					inline: true
+				}, {
+					name: "Preferred Gender",
+					value: pr.preference.gender === "none" ? "🚫 **None**" : (pr.preference.gender === "male" ? "♂️ **Male**" : "♀️ **Female**"),
+					inline: true
+				}, {
+					name: "Relationship Status",
+					value: pr.preference.status === "looking" ? "👀 **Looking**" : (pr.preference.status === "single" ? "🧍 **Single**" : "🧑‍🤝‍🧑 **Taken**"),
+					inline: true
+				}, {
+					name: "Age",
+					value: calculate_age(pr.dob),
+					inline: true
+				}, {
+					name: "About me",
 					value: pr.description
+				}, {
+					name: "Looking for",
+					value: pr.lookingfor
+				}, {
+					name: "Hobbies",
+					value: pr.hobbies
 				}
 			],
-			color: colors.embedColor
+			color: colors.winered
 		};
 
 		return obj;
