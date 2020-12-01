@@ -1,6 +1,6 @@
-const { isDeveloper, createHelpEmbed } = require("../../Utils/util");
-const { colors, defaultPrefix, name } = require("../../Utils/config.json");
-const emojis = require("../../Utils/emojis.json");
+const { isDeveloper, createHelpEmbed } = require("../../Utils/util"),
+	{ colors, defaultPrefix, name } = require("../../Utils/config.json"),
+	{ x } = require("../../Utils/emojis.json");
 
 module.exports = {
 	commands: ["help"],
@@ -65,7 +65,7 @@ module.exports = {
 		} else {
 			let command = commands.find(c => bot.commands[c].commands[0].toLowerCase() === helpFor.toLowerCase());
 			if (!command)
-				return msg.channel.createMessage(`${emojis.x} The ${helpFor} command or category does not exist.`);
+				return msg.channel.createMessage(`${x} The ${helpFor} command or category does not exist.`);
 
 			msg.channel.createMessage(createHelpEmbed(bot.commands[command]));
 		}

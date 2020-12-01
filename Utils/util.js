@@ -1,6 +1,7 @@
 const Config = require("./config.json");
 const path = require("path");
 const { inspect } = require("util");
+const log = require("../Internals/handlers/log");
 
 module.exports = {
 	createHelpEmbed(cmd, content = null) {
@@ -92,6 +93,25 @@ module.exports = {
 		let linkMatch = msg.content.match(linkFileReg);
 		if (linkMatch && extensions.includes(path.extname(linkMatch[0]))) return linkMatch[0];
 		return null;
+	},
+
+	async mute(bot, user, moderator, time, reason) {
+		const guild = bot.guilds.get(Config.guildID);
+
+		await log.add(bot, user, moderator, "mute", time, reason);
+		return guild.addMemberRole(user.id, Config.roles.muted);
+	},
+
+	async unmute(bot, user, moderator, reason) {
+		const guild = bot.guilds.get(Config.guildID);
+
+		let Cases = await log.get(bot, "user", user);
+		if (!Cases) return;
+		let muteCases = Cases.filter(c => c.action === "mute"),
+			caseNum = muteCases[muteCases.length - 1].caseNum;
+
+		await log.resolve(bot, caseNum, reason, moderator);
+		return guild.removeMemberRole(user.id, Config.roles.muted);
 	},
 
 	findMember(server, user) {

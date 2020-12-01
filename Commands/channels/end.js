@@ -1,6 +1,6 @@
-const Emojis = require("../../Utils/emojis.json");
-const deletePrivate = require("../../Internals/modules/deletePrivate");
-const { isDeveloper } = require("../../Utils/util");
+const Emojis = require("../../Utils/emojis.json"),
+	deletePrivate = require("../../Internals/modules/deletePrivate"),
+	{ isDeveloper } = require("../../Utils/util");
 
 module.exports = {
 	commands: [

@@ -9,7 +9,7 @@ module.exports = async (bot, user1, user2) => {
 	let check1 = await channels.findOne({ userID: user1.id }),
 		check2 = await channels.findOne({	userID: user2.id });
 
-	if (!check1 || !check2) return;
+	if (check1 || check2) return;
 
 	let data1 = await fetch(bot, user1),
 		data2 = await fetch(bot, user2);

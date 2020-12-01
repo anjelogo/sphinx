@@ -1,8 +1,8 @@
-const createPrivate = require("../../Internals/modules/createPrivate");
-const Config = require("../../Utils/config.json");
-const Emojis = require("../../Utils/emojis.json");
-const { findMember } = require("../../Utils/util");
-const Profile = require("../../Internals/handlers/profileHandler");
+const createPrivate = require("../../Internals/modules/createPrivate"),
+	Config = require("../../Utils/config.json"),
+	Emojis = require("../../Utils/emojis.json"),
+	{ findMember } = require("../../Utils/util"),
+	Profile = require("../../Internals/handlers/profileHandler");
 
 module.exports = {
 	commands: [
@@ -39,19 +39,23 @@ module.exports = {
 	clientPerms: ["externalEmojis"],
 	execute: async (bot, msg, args) => {
 		let action = args[0];
-		if (!action) action = "";
+		if (!action) action = null;
 
 		switch (action.toLowerCase()) {
 		case "queue": {
-			let user1 = findMember(msg.guild, args[1]);
-			let user2 = findMember(msg.guild, args[2]);
+			let user1 = Profile.search(bot, args[1]),
+				user2 = Profile.search(bot, args[2]),
+				m;
+
 			if (!user2 || !args[2]) user2 = msg.member;
 
-			//if (user1.voiceState.channelID !== Config.channels.queue || user2.voiceState.channelID !== Config.channels.queue) return msg.channel.createMessage(`${Emojis.x} Not in queue!`);
+			const u1d = await Profile.fetch(bot, user1.id),
+				u2d = await Profile.fetch(bot, user2.id);
 
-			let m = await msg.channel.createMessage(`${Emojis.warning.yellow} Creating private channel...`);
+			m = await msg.channel.createMessage(`${Emojis.warning.yellow} Creating private channel...`);
 			await createPrivate(bot, user1, user2);
-			m.edit(`${Emojis.tick} I have created a private channel between {placeholder} and {placeholder}`);
+
+			m.edit(`${Emojis.tick} I have created a private channel between \`${u1d.name}\` and \`${u2d.name}\``);
 			break;
 		}
 		case "delete": {
@@ -64,8 +68,8 @@ module.exports = {
 			let data = await Profile.fetch(bot, user);
 			if (!data) return m.edit(`${Emojis.x} I couldn't find a profile for \`${user.username}\`.`);
 
-			const member = findMember(guild, user.id);
-			const name = data.name;
+			const member = findMember(guild, user.id),
+				name = data.name;
 
 			try {
 				await member.roles.forEach(r => member.removeRole(r));
@@ -87,7 +91,7 @@ module.exports = {
 			if (channel.modMode === true) msg.channel.createMessage(`${Emojis.x} The session is already in **MOD MODE**.`);
 
 			await db.findOneAndUpdate({ text: msg.channel.id }, { $set: { modMode: true } });
-			msg.channel.createMessage(`${Emojis.tick} This channel is now in modmode.`);
+			msg.channel.createMessage(`${Emojis.tick} This channel is now in **MOD MODE**.`);
 			break;
 		}
 		default: return msg.channel.createMessage(`${Emojis.x} Invalid Subcommand, check help for this command.`);

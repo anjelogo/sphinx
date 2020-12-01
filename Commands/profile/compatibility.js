@@ -1,7 +1,8 @@
-const { fetch, search } = require("../../Internals/handlers/profileHandler");
-const { colors } = require("../../Utils/config.json");
-const Emojis = require("../../Utils/emojis.json");
-const { findMember } = require("../../Utils/util");
+const { fetch, search } = require("../../Internals/handlers/profileHandler"),
+	{ colors } = require("../../Utils/config.json"),
+	Emojis = require("../../Utils/emojis.json"),
+	compatibility = require("../../Internals/modules/compatibility"),
+	{ findMember } = require("../../Utils/util");
 
 module.exports = {
 	commands: [
@@ -21,64 +22,33 @@ module.exports = {
 		}
 	],
 	execute: async (bot, msg, args) => {
-		const regex = /filter/i;
-
-		let m = await msg.channel.createMessage({ embed: { title: "Calculating...", color: colors.embedColor }});
-
-		let undefinedUsers = [];
-
-		const user1 = await search(bot, args[0], msg);
-		if (!user1) undefinedUsers.push(args[0]);
-		let user2;
+		let undefinedUsers = [],
+			user2,
+			m,
+			user1;
+			
 		if (!args[1]) user2 = msg.member;
 		else user2 = await search(bot, args[1], msg);
+
+		m = await msg.channel.createMessage({ embed: { title: "Calculating...", color: colors.embedColor }});
+
+		user1 = await search(bot, args[0], msg);
+		if(!user1) undefinedUsers.push(args[0]);
 		if(!user2) undefinedUsers.push(args[1]);
 
 		if (undefinedUsers.length) return m.edit({ content: `${Emojis.warning.yellow} I could not find the user(s) \`${undefinedUsers.length === 1 ? undefinedUsers[0] : undefinedUsers.join("` and `")}\`.`, embed: null });
 
-		const u1d = await fetch(bot, user1);
-		const u2d = await fetch(bot, user2);
-
-		let u1 = findMember(msg.guild, user1.id);
-		let u2 = findMember(msg.guild, user2.id);
-
-		//Math
-		let i = 0;
-		let j = 0;
-
-		let arr = [];
-		let roles = msg.guild.roles.filter(r => regex.test(r.name.substring(0, 6))).map(r => r.id);
-
-		u1.roles.filter(r => roles.includes(r)).forEach(r => arr.push(r) && i++);
-		u2.roles.filter(r => roles.includes(r)).forEach(r => arr.push(r) && j++);
-		if (u1d.profile.preference.gender !== "none") i++;
-		if (u2d.profile.preference.gender !== "none") j++;
-
-		let common = {};
-		let inCommon = 0;
-		arr.forEach(r => common[r] = (common[r] || 0) + 1);
-		Object.keys(common).forEach(c => common[c] > 1 ? inCommon++ : null);
-		if (u2d.profile.gender === u1d.profile.preference.gender && u1d.profile.gender === u2d.profile.preference.gender) inCommon++;
-
-		const med = (array) => {
-			array.sort((a, b) => {
-				return a-b;
-			});
-			let half = Math.floor(array.length / 2);
-				
-			if (array.length % 2)
-				return array[half];
-			else
-				return (array[half - 1] + array[half]) / 2.0;
-		};
-
-		let median = med([(inCommon/i), (inCommon/j)]);
-		let compatibility = Math.max( Math.round(median * 10) / 10).toFixed(2) * 100;
+		const u1d = await fetch(bot, user1),
+			u2d = await fetch(bot, user2),
+			u1 = findMember(msg.guild, user1.id),
+			u2 = findMember(msg.guild, user2.id);
+			
+		let rate = await compatibility(bot, u1, u2);
 
 		//Make Embed
 		const embed = {
 			title: `${u1d.name} and ${u2d.name}'s Compatibility`,
-			description: `${u1d.name} and ${u2d.name} are **${compatibility}%** compatible!`,
+			description: `${u1d.name} and ${u2d.name} are **${rate}%** compatible!`,
 			color: colors.winered
 		};
 

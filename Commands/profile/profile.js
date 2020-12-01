@@ -1,6 +1,6 @@
-const Profile = require("../../Internals/handlers/profileHandler");
-const { colors } = require("../../Utils/config.json");
-const Emojis = require("../../Utils/emojis.json");
+const Profile = require("../../Internals/handlers/profileHandler"),
+	{ colors } = require("../../Utils/config.json"),
+	Emojis = require("../../Utils/emojis.json");
 
 module.exports = {
 	commands: [
