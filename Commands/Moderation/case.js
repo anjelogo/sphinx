@@ -14,10 +14,11 @@ module.exports = {
 		}
 	],
 	execute: async (bot, msg, args) => {
-		let caseNum = Number(args[0]),
+		let m = await msg.channel.createMessage(`${Emojis.loading} Grabbing case information...`),
+			caseNum = Number(args[0]),
 			Case = await log.get(bot, "number", caseNum);
 
-		if (!Case) return msg.channel.createMessage(`${Emojis.x} Couldn't find a case with the number \`${caseNum}\`.`);
+		if (!Case) return m.edit(`${Emojis.x} Couldn't find a case with the number \`${caseNum}\`.`);
 
 		const user = findUser(bot, Case.userID),
 			moderator = findMember(msg.guild, Case.moderator),
@@ -45,6 +46,6 @@ module.exports = {
 				timestamp: new Date()
 			};
 
-		msg.channel.createMessage({ embed });
+		m.edit({ content: "", embed });
 	}
 };

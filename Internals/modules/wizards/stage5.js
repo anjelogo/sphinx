@@ -20,21 +20,19 @@ module.exports = async (bot, user, m) => {
 	const obj = Session.data;
 
 	const prg = {
-		"male": "781824302252032011",
-		"female": "781824472361336882",
-		"none": "782465555209912351"
-	};
-
-	const prr = {
-		"single": "782170638264696852",
-		"taken": "782170707227967518",
-		"looking": "782170741012430861"
-	};
-
-	const gender = {
-		"male": "782197925114806282",
-		"female": "782197952616988703"
-	};
+			"male": "781824302252032011",
+			"female": "781824472361336882",
+			"none": "782465555209912351"
+		},
+		prr = {
+			"single": "782170638264696852",
+			"taken": "782170707227967518",
+			"looking": "782170741012430861"
+		},
+		gender = {
+			"male": "782197925114806282",
+			"female": "782197952616988703"
+		};
 
 	let rolesToBeAdded = [];
 	rolesToBeAdded.push(prg[obj.preference.gender]);

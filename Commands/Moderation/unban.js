@@ -1,5 +1,6 @@
 const log = require("../../Internals/handlers/log"),
-	Emojis = require("../../Utils/emojis.json");
+	Emojis = require("../../Utils/emojis.json"),
+	{ sendWarning } = require("../../Utils/util");
 
 module.exports = {
 	commands: ["unban"],
@@ -8,37 +9,39 @@ module.exports = {
 	args: [
 		{
 			name: "user",
-			description: "The user you're unmuting"
+			description: "The user you're unbanning"
+		}, {
+			name: "reason",
+			description: "The reason for unbanning",
+			optional: true
 		}
 	],
 	execute: async (bot, msg, args) => {
-		let bans = await msg.guild.getBans(),
-			user = bans.filter(b => b.user.id === args[0])[0],
+		let m = await msg.channel.createMessage(`${Emojis.loading} Grabbing user information`),
+			bans = await msg.guild.getBans(),
+			user = bans.filter(b => b.user.id === args[0])[0].user,
+			reason = args[1] ? reason = args.slice(1).join(" ") : null,
+			warning,
 			caseNum,
-			reason,	
-			member,
-			cases,
-			m;
+			cases;
 
-		if (!user) return msg.channel.createMessage(`${Emojis.x} I couldn't find a user with the id \`${args[0]}\``);
+		if (!user) return m.edit(`${Emojis.x} I couldn't find a *banned* user with the id \`${args[0]}\``);
 		
-		cases = await log.get(bot, "user", member);
+		cases = await log.get(bot, "user", user);
 		caseNum = cases.filter(c => c.action === "ban")[0].caseNum;
 
-		m = await msg.channel.createMessage(`${Emojis.warning.yellow} What do you want the reason to be?`);
-
-		reason = await msg.channel.awaitMessages(m => m.author.id === msg.author.id, { time: 30000, maxMatches: 1 });
-		if (!reason.length || /cancel/gi.test(reason[0].content)) return m.edit(`${Emojis.warning.red} Cancelled.`);
-		
-		m.edit(`${Emojis.warning.yellow} Unmuting user.`);
-
 		try {
+			warning = await sendWarning(m, msg.author);
+			if (!warning) return m.edit(`${Emojis.x} User cancelled operation.`);
+			m.edit(`${Emojis.loading} Unbanning user.`);
+
 			await msg.guild.unbanMember(user.id, reason);
-			await log.resolve(bot, caseNum, reason, bot.user);
+			await log.resolve(bot, caseNum, reason, msg.author);
 		} catch (e) {
-			m.edit(`${Emojis.x} An error has occurred.`);
+			m.edit(`${Emojis.x} An error occurred.`);
 			throw new Error(e);
 		}
-		m.edit(`${Emojis.tick} Successfully unbanned ${member.tag}.`);
+
+		m.edit(`${Emojis.tick} Successfully unbanned \`${user.tag}.\``);
 	}
 };

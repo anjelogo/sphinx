@@ -3,7 +3,7 @@ const Config = require("../../Utils/config.json"),
 	{ fetch } = require("../handlers/profileHandler");
 
 module.exports = async (bot, user1, user2) => {
-	const guild = user1.guild;
+	const guild = bot.guilds.get(Config.guildID);
 	let channels = bot.m.get("channels");
 
 	let check1 = await channels.findOne({ userID: user1.id }),

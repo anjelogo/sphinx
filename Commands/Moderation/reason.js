@@ -1,5 +1,6 @@
 const log = require("../../Internals/handlers/log"),
-	Emojis = require("../../Utils/emojis.json");
+	Emojis = require("../../Utils/emojis.json"),
+	{ sendWarning } = require("../../Utils/util");
 
 module.exports = {
 	commands: [
@@ -18,14 +19,26 @@ module.exports = {
 		}
 	],
 	execute: async (bot, msg, args) => {
-		if (isNaN(Number(args[0]))) return msg.channel.createMessage(`${Emojis.x} That's not a number!`);
-		const Case = await log.get(bot, "number", Number(args[0])),
-			reason = args.slice(1).join(" ");
+		let m = await msg.channel.createMessage(`${Emojis.loading} Grabbing case information...`),
+			caseNum = Number(args[0]),
+			Case = await log.get(bot, "number", caseNum),
+			reason = args.slice(1).join(" "),
+			warning;
 
-		if (!Case) return msg.channel.createMessage(`${Emojis.x} Could not find a case with the number ${Number(args[0])}`);
-		if (Case.resolve) return msg.channel.createMessage(`${Emojis.x} That case is already resolved. You cannot change the reason.`);
+		if (!Case) return m.edit(`${Emojis.x} Could not find a case with the number ${caseNum}`);
+		if (Case.resolve) return m.edit(`${Emojis.x} That case is already resolved. You cannot change the reason.`);
 
-		await log.edit(bot, Number(args[0]), reason, msg.member);
-		msg.channel.createMessage(`${Emojis.tick} Successfully edited case \`${args[0]}\`.`);
+		try {
+			warning = await sendWarning(m, msg.author);
+			if (!warning) return m.edit(`${Emojis.x} User cancelled operation.`);
+			m.edit(`${Emojis.loading} Editing case...`);
+
+			await log.edit(bot, caseNum, reason, msg.member);
+		} catch (e) {
+			m.edit(`${Emojis.x} An error occurred.`);
+			throw new Error(e);
+		}
+
+		m.edit(`${Emojis.tick} Successfully edited \`Case #${caseNum}\`.`);
 	}
 };

@@ -22,21 +22,21 @@ module.exports = {
 		}
 	],
 	execute: async (bot, msg, args) => {
-		let undefinedUsers = [],
+		let m = await msg.channel.createMessage(`${Emojis.loading} Getting user information...`),
+			undefinedUsers = [],
 			user2,
-			m,
 			user1;
 			
 		if (!args[1]) user2 = msg.member;
-		else user2 = await search(bot, args[1], msg);
+		else user2 = await search(bot, args[1], msg.author, m);
 
-		m = await msg.channel.createMessage({ embed: { title: "Calculating...", color: colors.embedColor }});
-
-		user1 = await search(bot, args[0], msg);
+		user1 = await search(bot, args[0], msg.author, m);
 		if(!user1) undefinedUsers.push(args[0]);
 		if(!user2) undefinedUsers.push(args[1]);
 
 		if (undefinedUsers.length) return m.edit({ content: `${Emojis.warning.yellow} I could not find the user(s) \`${undefinedUsers.length === 1 ? undefinedUsers[0] : undefinedUsers.join("` and `")}\`.`, embed: null });
+
+		m.edit(`${Emojis.loading} Calculating`);
 
 		const u1d = await fetch(bot, user1),
 			u2d = await fetch(bot, user2),
@@ -45,13 +45,12 @@ module.exports = {
 			
 		let rate = await compatibility(bot, u1, u2);
 
-		//Make Embed
 		const embed = {
 			title: `${u1d.name} and ${u2d.name}'s Compatibility`,
 			description: `${u1d.name} and ${u2d.name} are **${rate}%** compatible!`,
 			color: colors.winered
 		};
 
-		m.edit({ embed });
+		m.edit({ content: "", embed });
 	}
 };

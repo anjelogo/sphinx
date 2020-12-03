@@ -1,9 +1,10 @@
 const { colors } = require("../../Utils/config.json"),
-	{ findUser, findMember, calculate_age } = require("../../Utils/util");
+	{ findUser, findMember, calculate_age } = require("../../Utils/util"),
+	Emojis = require("../../Utils/emojis.json");
 
 module.exports = {
 
-	fetch: async (bot, query = null) => {
+	async fetch (bot, query = null) {
 		const db = bot.m.get("profiles");
 
 		if (query) {
@@ -30,7 +31,7 @@ module.exports = {
 
 	},
 
-	edit: async (bot, query, value) => {
+	async edit (bot, query, value) {
 		const db = bot.m.get("profiles");
 		
 		let data = await db.findOne({ userID: query.id });
@@ -49,14 +50,23 @@ module.exports = {
 	
 	},
 
-	delete: async (bot, query) => {
+	async delete (bot, query) {
 		const db = bot.m.get("profiles");
 
-		await db.findOneAndDelete({ userID: query.id });
-
+		return await db.findOneAndDelete({ userID: query.id });
 	},
 
-	embed: async (bot, user) => {
+	async archive (bot, query) {
+		const profiles = bot.m.get("profiles"),
+			archive = bot.m.get("archived"),
+			data = await profiles.findOne({ userID: query.id });
+
+
+		await archive.insert(data);
+		return await profiles.findOneAndDelete({ userID: query.id });
+	},
+
+	async embed (bot, user) {
 		const db = bot.m.get("profiles"),
 			data = await db.findOne({ userID: user.id }),
 			pr = data.profile;
@@ -103,16 +113,15 @@ module.exports = {
 		return obj;
 	},
 
-	search: async (bot, query, msg) => {
+	async search (bot, query, author, m) {
 		const db = bot.m.get("profiles");
-		const found = { title: "Found!", color: colors.green };
 		if (!query) return undefined;
 
-		let m = await msg.channel.createMessage({ embed: { title: "Searching...", color: colors.embedColor } });
+		m.edit(`${Emojis.loading} Searching...`);
 		let users = [];
 
 		const first = async () => {
-			if (query.id === msg.author.id) return;
+			if (query.id === author.id) return;
 
 			let data = await db.findOne({ userID: query.id });
 			if (!data) return;
@@ -143,7 +152,6 @@ module.exports = {
 		};
 
 		const second = async () => {
-			const db = bot.m.get("profiles");
 			let pr = await db.aggregate([
 				{
 					$match: {
@@ -166,42 +174,27 @@ module.exports = {
 		};
 
 		const third = async () => {
-			let user = findMember(msg.guild, query);
+			let user = findMember(m.guild, query);
 			if (!user) user = findUser(bot, query);
 
 			if (!user) {
-				await m.edit({
-					embed: {
-						title: "Couldn't find anything.",
-						color: colors.embedColor
-					}
-				});
-
-				setTimeout(() => {
-					m.delete();
-				}, 1500);
-
+				await m.edit(`${Emojis.warning.red} No results.`);
 				return undefined;
 			} else {
-				await m.edit({ embed: found });
-				setTimeout(() => {
-					m.delete();
-				}, 1500);
+				await m.edit(`${Emojis.loading} Loading user...`);
 				return user.user;
 			}
 		};
 
 		const multiple = async () => {
-			if (users.length > 10) users.length = 9;
-			const defaultUser = await db.findOne({ userID: users[0].id });
-			const amountOfUsers = users.length;
-			const indexRegex = new RegExp(`[0-${amountOfUsers}]`);
-
-			let embed = {
-				title: "Oops!",
-				description: `There are multiple users with the name \`${query}\`. Which one did you mean to specify?\nIf you don't answer in 20 seconds, the bot will automatically select \`${defaultUser.profile.name.first} ${defaultUser.profile.name.last}\`\n\n`,
-				color: colors.green
-			};
+			let defaultUser = await db.findOne({ userID: users[0].id }),
+				amountOfUsers = users.length > 10 ? users.length = 9 : users.length,
+				indexRegex = new RegExp(`[0-${amountOfUsers}]`),
+				embed = {
+					title: "Oops!",
+					description: `There are multiple users with the name \`${query}\`. Which one did you mean to specify?\nIf you don't answer in 20 seconds, the bot will automatically select \`${defaultUser.profile.name.first} ${defaultUser.profile.name.last}\`\n\n`,
+					color: colors.green
+				};
 
 			for (let user of users) {
 				let data = await db.findOne({ userID: user.id });
@@ -210,44 +203,30 @@ module.exports = {
 			}
 
 			await m.edit({ embed });
-			let res = await msg.channel.awaitMessages((m) => m.author.id === msg.author.id, { maxMatches: 1, time: 20000 });
+			let res = await m.channel.awaitMessages((m) => m.author.id === author.id, { maxMatches: 1, time: 20000 });
 
 			if (!res.length) {
-				await m.edit({ embed: { title: "Timed out, returning default user.", color: colors.red } });
-				setTimeout(() => {
-					m.delete();
-				}, 1500);
+				await m.edit({ content: `${Emojis.x} Timed out, returning default user.`, embed: null });
 				return users[0];
 			} else if (!indexRegex.test(res[0].content)) {
-				await m.edit({ embed: { title: "Invalid Selection, returning default user.", color: colors.red } });
-				setTimeout(() => {
-					m.delete();
-				}, 1500);
+				await m.edit({ content: `${Emojis.x} Inavlid selection, returning default user.`, embed: null });
 				return users[0];
 			}
 			res[0].delete();
-			
-			let index = Number(res[0].content);
-			m.delete();
-			return users[index];
+
+			return users[Number(res[0].content)];
 		};
 
 		await first();
 		if (users.length && users.length > 1) return await multiple();
 		else if (users.length) {
-			await m.edit({ embed: found });
-			setTimeout(() => {
-				m.delete();
-			}, 1500);
+			await m.edit(`${Emojis.loading} Loading user...`);
 			return users[0];
 		} else {
 			await second();
 			if (users.length && users.length > 1) return await multiple();
 			else if (users.length) {
-				await m.edit({ embed: found });
-				setTimeout(() => {
-					m.delete();
-				}, 1500);
+				await m.edit(`${Emojis.loading} Loading user...`);
 				return users[0];
 			} else return await third();
 		}

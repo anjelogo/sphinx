@@ -1,26 +1,30 @@
-const { channels, colors, guildID } = require("../../Utils/config.json");
+const { channels, colors, guildID, roles } = require("../../Utils/config.json"),
+	Profile = require("../../Internals/handlers/profileHandler");
 
 module.exports = {
 
-	add: async (bot, user, moderator, action, time, reason = null) => {
-		const db = bot.m.get("modlog"),
+	async add (bot, user, moderator, action, time, reason = null) {
+		let db = bot.m.get("modlog"),
 			cases = await db.find({}),
-			guild = moderator.guild,
+			guild = bot.guilds.get(guildID),
 			caseNum = cases.length > 0 ? cases[cases.length - 1].caseNum + 1 : 1,
 			string = reason ? `${reason}${time ? ` | ${time}` : ""}` : `Moderator please do !reason ${obj.caseNum}${time ? ` | ${time}` : ""}`,
 			embed = {
-				title: `${action.replace(/^\w/, c => c.toUpperCase())} | Case #${caseNum}`,
+				title: `${action[0].toUpperCase() + action.substring(1)} | Case #${caseNum}`,
 				thumbnail: {
 					url: user.avatarURL
+				},
+				author: {
+					name: user.id
 				},
 				fields: [
 					{
 						name: "User",
-						value: `${user.mention} (${user.id})`,
+						value: user.mention,
 						inline: true
 					}, {
 						name: "Moderator",
-						value: moderator.tag,
+						value: moderator.mention,
 						inline: true
 					}, {
 						name: "Reason",
@@ -29,9 +33,8 @@ module.exports = {
 				],
 				color: colors[action],
 				timestamp: new Date()
-			};
-
-		let m = await guild.channels.get(channels.log).createMessage({ embed });
+			},
+			m = await guild.channels.get(channels.log).createMessage({ embed });
 
 		let obj = {
 			caseNum,
@@ -44,10 +47,82 @@ module.exports = {
 			reason: string
 		};
 
-		return await db.insert(obj);
+		await db.insert(obj);
+		return await this.auto(bot, user);
 	},
 
-	edit: async (bot, caseNum, reason, moderator) => {
+	async auto (bot, user) {
+		let history = await this.get(bot, "user", user),
+			guild = bot.guilds.get(guildID),
+			infractions = 0,
+			punishment,
+			reason,
+			hierarchy = {
+				warn: 1,
+				mute: 2,
+				kick: 2,
+				ban: 3
+			};
+
+		for (let Case of history) infractions += hierarchy[Case.action];
+		
+		if (infractions < 3) return;
+		if (infractions >= 3 && infractions < 9) punishment = "mute";
+		else if (infractions >= 9) punishment = "ban";
+
+		reason = `**[AUTOMOD]** ${infractions} Infractions`;
+
+		switch (punishment) {
+		case "mute": {
+			if (history.filter(c => c.action === "mute").length) return;
+			user.createMessage({
+				embed: {
+					title: "You have been muted",
+					description: "You have been muted in sphinx.",
+					fields: [
+						{
+							name: "Moderator",
+							value: user.tag
+						}, {
+							name: "Reason",
+							value: `${reason} | 7d`
+						}
+					],
+					color: colors.mute
+				}
+			});
+			await guild.addMemberRole(user.id, roles.muted);
+			break;
+		}
+		case "ban": {
+			if (history.filter(c => c.action === "ban").length) return;
+			if (history.filter(c => c.action === "mute").length) await this.resolve(bot, history.filter(c => c.action === "mute")[0].caseNum, "**[AUTOMOD]** Unmuted for ban.", bot.user);
+			user.createMessage({
+				embed: {
+					title: "You have been banned",
+					description: "You have been banned from sphinx.",
+					fields: [
+						{
+							name: "Moderator",
+							value: user.tag
+						}, {
+							name: "Reason",
+							value: `${reason} | 7d`
+						}
+					],
+					color: colors.ban
+				}
+			});
+			await guild.banMember(user.id, 0, `${reason} | 7d`);
+			await Profile.archive(bot, user);
+			break;
+		}
+		}
+
+		return await this.add(bot, user, bot.user, punishment, "7d", reason);
+	},
+
+	async edit (bot, caseNum, reason, moderator) {
 		const db = bot.m.get("modlog"),
 			Case = await db.findOne({ caseNum }),
 			guild = moderator.guild;
@@ -65,12 +140,12 @@ module.exports = {
 		return await db.findOneAndUpdate({ caseNum }, { $set: { reason, moderator: moderator.id } });
 	},
 
-	resolve: async (bot, caseNum, reason, moderator) => {
+	async resolve (bot, caseNum, reason, moderator) {
 		const db = bot.m.get("modlog"),
 			Case = await db.findOne({ caseNum }),
 			guild = bot.guilds.get(guildID);
 
-		if (!Case || Case.action === "undefined") return undefined;
+		if (!Case || Case.action === "resolved") return;
 
 		let m = await guild.channels.get(channels.log).getMessage(Case.messageID);
 		if (!m) return;
@@ -78,19 +153,19 @@ module.exports = {
 		let embed = m.embeds[0],
 			resolved = {
 				moderator: moderator.id,
-				reason
+				reason: reason ? reason : "No reason provided."
 			};
 		
 		embed.title = `${Case.action.replace(/^\w/, c => c.toUpperCase())} (Resolved) | Case #${caseNum}`;
 		embed.color = colors.resolved;
-		embed.fields[1].value = `${moderator.tag}\n~~${embed.fields[1].value}~~`;
+		embed.fields[1].value = `${moderator.mention}\n~~${embed.fields[1].value}~~`;
 		embed.fields[2].value = `${reason}\n~~${Case.reason}~~`;
 		m.edit({ embed });
 
 		return await db.findOneAndUpdate({ caseNum }, { $set: { moderator: moderator.id, resolved } });
 	},
 
-	get: async (bot, type, parameter) => {
+	async get (bot, type, parameter) {
 		const db = bot.m.get("modlog");
 
 		if (type === "user") {

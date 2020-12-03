@@ -1,11 +1,25 @@
-const Config = require("./config.json");
-const path = require("path");
-const { inspect } = require("util");
-const log = require("../Internals/handlers/log");
+const Config = require("./config.json"),
+	Emojis = require("../Utils/emojis.json"),
+	path = require("path"),
+	{ inspect } = require("util");
 
 module.exports = {
+	
+	async sendWarning(m, author) {
+		m.edit(`${Emojis.warning.yellow} Are you sure you want to do this?\n\nRespond with: \`yes\`, \`y\`, \`no\`, \`n\`.`);
+
+		let response = await m.channel.awaitMessages(m => m.author.id === author.id, { maxMatches: 1, time: 25000});
+		if (!response.length || !/^(?:yes\b|no|y|n\b)/i.test(response[0].content)) return m.edit(`${Emojis.x} Cancelled operation.`);
+		if (/^(?:n\b|no\b)/i.test(response[0].content)) return false;
+		response[0].delete();
+		return true;
+	},
+
 	createHelpEmbed(cmd, content = null) {
-		let fields = [];
+		let usage,
+			argStrings = [],
+			fields = [];
+
 		if (cmd.commands.length > 1) {
 			fields.push({
 				name: "Aliases",
@@ -22,15 +36,12 @@ module.exports = {
 			});
 		}
 
-		let usage;
-		let argStrings = [];
 		if (cmd.args) {
 			cmd.args.forEach(arg => {
 				if (arg.optional) argStrings.push(`[${arg.name}]`);
 				else argStrings.push(`<${arg.name}>`);
 			});
 		}
-
 
 		argStrings.length > 0 ? usage = `${cmd.commands[0]} ${argStrings.join(" ")}` : usage = `${cmd.commands[0]}`;
 
@@ -84,34 +95,16 @@ module.exports = {
 	},
 
 	getAttachments(msg) {
-		const extensions = [".png", ".jpg", ".jpeg", ".gif", ".webp"];
-		const linkFileReg = /https?:\/\/(?:\w+\.)?[\w-]+\.[\w]{2,3}(?:\/[\w-_.]+)+\.(?:png|jpg|jpeg|gif|webp)/;
-		let embed = msg.embeds.find(e => e.type === "rich" && e.image && extensions.includes(path.extname(e.image.url)));
+		const extensions = [".png", ".jpg", ".jpeg", ".gif", ".webp"],
+			linkFileReg = /https?:\/\/(?:\w+\.)?[\w-]+\.[\w]{2,3}(?:\/[\w-_.]+)+\.(?:png|jpg|jpeg|gif|webp)/,
+			embed = msg.embeds.find(e => e.type === "rich" && e.image && extensions.includes(path.extname(e.image.url))),
+			attachment = msg.attachments.find(file => extensions.includes(path.extname(file.url))),
+			linkMatch = msg.content.match(linkFileReg);
+
 		if (embed) return embed.image.url;
-		let attachment = msg.attachments.find(file => extensions.includes(path.extname(file.url)));
 		if (attachment) return attachment.url;
-		let linkMatch = msg.content.match(linkFileReg);
 		if (linkMatch && extensions.includes(path.extname(linkMatch[0]))) return linkMatch[0];
 		return null;
-	},
-
-	async mute(bot, user, moderator, time, reason) {
-		const guild = bot.guilds.get(Config.guildID);
-
-		await log.add(bot, user, moderator, "mute", time, reason);
-		return guild.addMemberRole(user.id, Config.roles.muted);
-	},
-
-	async unmute(bot, user, moderator, reason) {
-		const guild = bot.guilds.get(Config.guildID);
-
-		let Cases = await log.get(bot, "user", user);
-		if (!Cases) return;
-		let muteCases = Cases.filter(c => c.action === "mute"),
-			caseNum = muteCases[muteCases.length - 1].caseNum;
-
-		await log.resolve(bot, caseNum, reason, moderator);
-		return guild.removeMemberRole(user.id, Config.roles.muted);
 	},
 
 	findMember(server, user) {

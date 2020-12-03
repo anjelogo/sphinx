@@ -49,9 +49,11 @@ module.exports = async (bot) => {
 
 			for (let m of list) {
 				const user2 = findMember(guild, m.userID),
+					data2 = await fetch(bot, user2),
 					rate = await compatibility(bot, user, user2);
+
 				console.log(`${user.username} - ${user2.username} | Rate: ${rate}`);
-				if (rate > 50) {
+				if (rate > 50 && data2.profile.gender === data.profile.preference.gender && data.profile.gender === data2.profile.preference.gender) {
 					match = user2;
 					found = true;
 					break queueLoop;

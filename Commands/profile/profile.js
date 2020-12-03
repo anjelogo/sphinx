@@ -1,5 +1,4 @@
 const Profile = require("../../Internals/handlers/profileHandler"),
-	{ colors } = require("../../Utils/config.json"),
 	Emojis = require("../../Utils/emojis.json");
 
 module.exports = {
@@ -20,15 +19,16 @@ module.exports = {
 	dmEnabled: true,
 	clientPerms: ["embedLinks", "addReactions", "externalEmojis", "manageMessages"],
 	execute: async (bot, msg, args) => {
-		let member = await Profile.search(bot, args[0], msg);
-		if (!member) member = msg.author;
+		let m = await msg.channel.createMessage(`${Emojis.loading} Grabbing user information...`),
+			user = await Profile.search(bot, args[0], msg.author, m);
+		if (!user) user = msg.author;
 
-		let m = await msg.channel.createMessage({ embed: { description: `${Emojis.warning.yellow} Fetching profile.`, color: colors.embedColor } });
+		let data = await Profile.fetch(bot, user);
+		if (!data) return m.edit(`${Emojis.x} That user does not have a profile!`);
 
-		let data = await Profile.fetch(bot, member);
-		if (!data) return m.edit({ embed: { color: colors.red, description: `${Emojis.x} That user does not have a profile!` } });
+		m.edit(`${Emojis.loading} Loading profile...`);
 		
-		let embed = await Profile.embed(bot, member);
-		m.edit({ embed });
+		let embed = await Profile.embed(bot, user);
+		m.edit({ content: "", embed });
 	}
 };

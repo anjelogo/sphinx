@@ -23,7 +23,7 @@ module.exports = {
 			let arr = [];
 			commands.forEach(c => {
 				let command = bot.commands[c];
-				if (!command.devOnly || !command.hidden) arr.push(c);
+				if (!command.devOnly || !command.hidden || command.category.toLowerCase() !== "moderation") arr.push(c);
 			});
 			commands = arr;
 		}

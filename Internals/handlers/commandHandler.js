@@ -16,46 +16,30 @@ module.exports = async (bot, msg) => {
 
 	let command = bot.commands[Object.keys(bot.commands).filter((c) => bot.commands[c].commands.indexOf(msg.content.toLowerCase().replace(prefix.toLowerCase(), "").split(" ")[0]) > -1)[0]];
 	const args = ((msg.content.replace(prefix, "").trim().split(/ +/g).length > 1) ? msg.content.replace(prefix, "").trim().split(/ +/g).slice(1) : []);
-	if (!command || command.devOnly && !isDeveloper(msg.author)) return;	
+	if (!command || command.devOnly && !isDeveloper(msg.author) || command.category === "Moderation" && !isDeveloper(msg.author)) return;	
 	if (msg.channel.type !== 0 && !command.dmEnabled) return msg.channel.createMessage(`${Emojis.x} You can only run this command in servers!`);
 
 	if (msg.channel.type === 0) {
-		if (command.clientPerms || command.userPerms) {
-			let neededClientPerms = [];
-			let neededUserPerms = [];
+		let neededClientPerms = [];
+
+		if (command.clientPerms) {
 			if (command.clientPerms) {
 				command.clientPerms.forEach(cp => {
 					if (!msg.channel.permissionsOf(bot.user.id).has(cp)) neededClientPerms.push(cp);
 				});
-				if (neededClientPerms.length > 0) return msg.channel.createMessage(`${Emojis.x} I need more permissions to run this command. Permissions needed: \`${neededClientPerms.join(", ")}\`\n\nYou can either enable it globally in server settings, or enable it channel-only by giving it the \`${neededClientPerms.join(" ")}\` permissions in channel settings.`);
-			}
-			if (command.userPerms) {
-				command.userPerms.forEach(up => {
-					if (!msg.channel.permissionsOf(msg.author.id).has(up)) neededUserPerms.push(up);
-				});
-				if (neededUserPerms.length > 0) return msg.channel.createMessage(`${Emojis.x} You need more permissions to use this command. Permissions needed: ${neededUserPerms.join(", ")}`);
 			}
 		}
 
 		if (command.subcommands && args[0]) {
 			let subcommand = command.subcommands.find(subcmd => subcmd.name.toLowerCase() === args[0].toLowerCase());
-			if (subcommand) {
-				let neededClientPerms = [];
-				let neededUserPerms = [];
-				if (subcommand.clientPerms) {
-					subcommand.clientPerms.forEach(cp => {
-						if (!msg.channel.permissionsOf(bot.user.id).has(cp)) neededClientPerms.push(cp);
-					});
-					if (neededClientPerms.length > 0) return msg.channel.createMessage(`${Emojis.x} I need more permissions to run this command. Permissions needed: \`${neededClientPerms.join(", ")}\`\n\nYou can either enable it globally in server settings, or enable it channel-only by giving it the \`${neededClientPerms.join(" ")}\` permissions in channel settings.`);
-				}
-				if (subcommand.userPerms) {
-					subcommand.userPerms.forEach(up => {
-						if (!msg.channel.permissionsOf(msg.author.id).has(up)) neededUserPerms.push(up);
-					});
-					if (neededUserPerms.length > 0) return msg.channel.createMessage(`${Emojis.x} You need more permissions to use this command. Permissions needed: \`${neededUserPerms.join(", ")}\``);
-				}
+			if (subcommand && subcommand.clientPerms) {
+				subcommand.clientPerms.forEach(cp => {
+					if (!msg.channel.permissionsOf(bot.user.id).has(cp)) neededClientPerms.push(cp);
+				});
 			}
 		}
+
+		if (neededClientPerms.length > 0) return msg.channel.createMessage(`${Emojis.x} I need more permissions to run this command. Permissions needed: \`${neededClientPerms.join(", ")}\`\n\nYou can either enable it globally in server settings, or enable it channel-only by giving it the \`${neededClientPerms.join(" ")}\` permissions in channel settings.`);
 	}
 
 	if (command.args && args.length < command.args.filter(a => !a.optional).length) return msg.channel.createMessage(createHelpEmbed(command, "It looks like you do not have enough arguments!"));
@@ -70,6 +54,7 @@ module.exports = async (bot, msg) => {
 			}
 		}
 	}
+
 	try {
 		console.log(`Command: ${command.commands[0]} ${msg.channel.type === 0 ? `| ${msg.guild.name} (${msg.channel.id})` : ""} | ${msg.author.id}`);
 		await command.execute(bot, msg, args);

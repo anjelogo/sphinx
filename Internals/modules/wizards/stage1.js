@@ -5,30 +5,28 @@ const { colors } = require("../../../Utils/config.json"),
 
 module.exports = async (bot, user, msg) => {
 
-	const cancelled = {
-		title: "Cancelled Profile Creator",
-		description: "I've cancelled creating your profile.",
-		color: colors.red 
-	};
-
-	let embed = {
-		title: "Your Profile",
-		description: "Answer the questions below to create a profile.",
-		color: colors.embedColor,
-		author: {
-			icon_url: msg.author.avatarURL
+	let cancelled = {
+			title: "Cancelled Profile Creator",
+			description: "I've cancelled creating your profile.",
+			color: colors.red 
 		},
-		fields: []
-	};
-
-	let obj = {
-		name: {},
-		createdAt: Date.now(),
-		avatarURL: user.avatarURL,
-		lastBumped: Date.now(),
-		locked: false,
-		verified: false
-	};
+		embed = {
+			title: "Your Profile",
+			description: "Answer the questions below to create a profile.\n\nYou can cancel anytime by typing `cancel` in chat.",
+			color: colors.embedColor,
+			author: {
+				icon_url: msg.author.avatarURL
+			},
+			fields: []
+		},
+		obj = {
+			name: {},
+			createdAt: Date.now(),
+			avatarURL: user.avatarURL,
+			lastBumped: Date.now(),
+			locked: false,
+			verified: false
+		};
 
 	embed.fields.push({
 		name: "When is your birthday?",

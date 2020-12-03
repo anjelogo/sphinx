@@ -18,11 +18,14 @@ module.exports = {
 		}
 	],
 	execute: async (bot, msg, args) => {
-		let user = await search(bot, args[0], msg),
+		let m = await msg.channel.createMessage(`${Emojis.loading} Grabbing user information...`),
+			user = await search(bot, args[0], msg.author, m),
 			Cases = await log.get(bot, "user", user),
 			arr = [];
 
-		if (!Cases || !Cases.length) return msg.channel.createMessage(`${Emojis.x} Couldn't find any punishment history for ${user.username}`);
+		if (!Cases || !Cases.length) return m.edit(`${Emojis.x} Couldn't find any punishment history for ${user.username}`);
+
+		m.edit(`${Emojis.loading} Grabbing punishment history...`);
 
 		Cases.forEach(c => {
 			let number = `\`Case #${c.caseNum} [${c.action.substring(0, 1).toUpperCase()}]\``;
@@ -48,6 +51,6 @@ module.exports = {
 
 		embed.fields[0].value += "\n\nView more info on a case using `!case <case number>`";
 
-		msg.channel.createMessage({ embed });
+		m.edit({ content: "", embed });
 	}
 };
