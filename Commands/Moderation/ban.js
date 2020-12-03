@@ -29,6 +29,9 @@ module.exports = {
 		if (!user) return m.edit(`${Emojis.x} I could not find a user called \`${args[0]}\``);
 
 		member = findMember(msg.guild, user.id);
+		if (member.id === msg.author.id) return m.edit(`${Emojis.x} You can't ban yourself, silly!`);
+		if (!member.bannable) return m.edit(`${Emojis.x} I can't ban that user!`);
+		if (!member.punishable(msg.author) || user.id === bot.user.id) return m.edit(`${Emojis.x} You can't ban that user!`);
 
 		try {
 			warning = await sendWarning(m, msg.author);
@@ -65,6 +68,6 @@ module.exports = {
 			throw new Error(e);
 		}
 
-		m.edit(`${Emojis.tick} Successfully banned \`${member.tag}\` for \`${reason}.\``);
+		m.edit(`${Emojis.tick} Successfully banned \`${member.tag}\` for \`${reason[0].content}.\``);
 	}
 };

@@ -30,6 +30,8 @@ module.exports = {
 
 		member = findMember(msg.guild, user.id);
 		if (member.roles.includes(roles.muted)) return m.edit(`${Emojis.x} That user is already muted!`);
+		if (member.id === msg.author.id) return m.edit(`${Emojis.x} You can't mute yourself, silly!`);
+		if (!member.punishable(msg.author) || user.id === bot.user.id) return m.edit(`${Emojis.x} You can't mute that user!`);
 
 		try {
 			warning = await sendWarning(m, msg.author);

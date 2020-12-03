@@ -1,6 +1,6 @@
 const log = require("../../Internals/handlers/log"),
 	Emojis = require("../../Utils/emojis.json"),
-	{ sendWarning } = require("../../Utils/util");
+	{ sendWarning, findBanned } = require("../../Utils/util");
 
 module.exports = {
 	commands: ["unban"],
@@ -17,17 +17,18 @@ module.exports = {
 		}
 	],
 	execute: async (bot, msg, args) => {
-		let m = await msg.channel.createMessage(`${Emojis.loading} Grabbing user information`),
-			bans = await msg.guild.getBans(),
-			user = bans.filter(b => b.user.id === args[0])[0].user,
+		let m = await msg.channel.createMessage(`${Emojis.loading} Grabbing user information...`),
 			reason = args[1] ? reason = args.slice(1).join(" ") : null,
+			bans = await msg.guild.getBans(),
+			user = findBanned(bans, args[0]),
 			warning,
 			caseNum,
 			cases;
 
-		if (!user) return m.edit(`${Emojis.x} I couldn't find a *banned* user with the id \`${args[0]}\``);
+		if (!user) return m.edit(`${Emojis.x} I couldn't find a *banned* user called \`${args[0]}\``);
 		
 		cases = await log.get(bot, "user", user);
+		if (!cases.filter(c => c.action === "ban").length) return m.edit(`${Emojis.x} That user is not banned!`);
 		caseNum = cases.filter(c => c.action === "ban")[0].caseNum;
 
 		try {

@@ -124,6 +124,13 @@ module.exports = {
 		else if (bot.users.find((m) => m.username.toLowerCase() === user.toLowerCase())) return bot.users.find((m) => m.username.toLowerCase() === user.toLowerCase()); // username
 	},
 
+	findBanned(bans, user) {
+		if (!user) return undefined;
+		if (/^\d+$/.test(user)) return bans.find(b => b && b.user.id === user).user; // ID
+		else if (/^\w+#\d{4}$/.test(user)) return bans.find(b => b.user.username.toLowerCase() === user.toLowerCase().match(/^\w+/)[0] && b.user.discriminator === String(user.match(/\d{4}/)[0])).user; // username and discrim
+		else if (bans.find(b => b.user.username.toLowerCase() === user.toLowerCase())) return bans.find(b => b.user.username.toLowerCase() === user.toLowerCase()).user; // username
+	},
+
 	findRole(server, role) {
 		if (!server || !role) return undefined;
 		if (/^\d+$/.test(role)) return server.roles.get(role); // ID 

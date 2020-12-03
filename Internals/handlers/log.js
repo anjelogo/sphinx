@@ -150,10 +150,12 @@ module.exports = {
 		let m = await guild.channels.get(channels.log).getMessage(Case.messageID);
 		if (!m) return;
 
+		reason = reason ? reason : "No reason provided.";
+
 		let embed = m.embeds[0],
 			resolved = {
 				moderator: moderator.id,
-				reason: reason ? reason : "No reason provided."
+				reason
 			};
 		
 		embed.title = `${Case.action.replace(/^\w/, c => c.toUpperCase())} (Resolved) | Case #${caseNum}`;

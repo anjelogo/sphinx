@@ -28,13 +28,15 @@ module.exports = {
 		if (!user) return m.edit(`${Emojis.x} I could not find a user called \`${args[0]}\``);
 
 		member = findMember(msg.guild, user.id);
+		if (member.id === msg.author.id) return m.edit(`${Emojis.x} You can't kick yourself, silly!`);
+		if (!member.kickable) return m.edit(`${Emojis.x} I can't kick that user!`);
+		if (!member.punishable(msg.author) || user.id === bot.user.id) return m.edit(`${Emojis.x} You can't kick that user!`);
 
 		try {
 			warning = await sendWarning(m, msg.author);
 			if (!warning) return m.edit(`${Emojis.x} User cancelled operation.`);
-			m.edit(`${Emojis.warning.yellow} What do you want the reason to be?`);
-
 			m.edit(`${Emojis.loading} Kicking user...`);
+
 			user.createMessage({
 				embed: {
 					title: "You have been kicked",
