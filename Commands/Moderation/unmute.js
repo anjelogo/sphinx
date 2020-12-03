@@ -1,10 +1,8 @@
 const log = require("../../Internals/handlers/log"),
 	Emojis = require("../../Utils/emojis.json"),
-	{ colors } = require("../../Utils/config.json"),
+	{ colors, roles, name } = require("../../Utils/config.json"),
 	{ search } = require("../../Internals/handlers/profileHandler"),
-	{ findMember } = require("../../Utils/util"),
-	{ roles } = require("../../Utils/config.json"),
-	{ sendWarning } = require("../../Utils/util");
+	{ findMember, sendWarning } = require("../../Utils/util");
 
 module.exports = {
 	commands: ["unmute"],
@@ -44,7 +42,7 @@ module.exports = {
 			user.createMessage({
 				embed: {
 					title: "You have been unmuted",
-					description: "You have been unmuted in sphinx.",
+					description: `You have been unmuted in ${name}`,
 					fields: [
 						{
 							name: "Moderator",

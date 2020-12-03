@@ -1,7 +1,7 @@
 const log = require("../../Internals/handlers/log"),
 	Emojis = require("../../Utils/emojis.json"),
 	{ search } = require("../../Internals/handlers/profileHandler"),
-	{ colors } = require("../../Utils/config.json"),
+	{ colors, name } = require("../../Utils/config.json"),
 	{ sendWarning } = require("../../Utils/util");
 
 module.exports = {
@@ -34,7 +34,7 @@ module.exports = {
 			user.createMessage({
 				embed: {
 					title: "You have been warned",
-					description: "You have been warned in sphinx.",
+					description: `You have been warned in ${name}.`,
 					fields: [
 						{
 							name: "Moderator",

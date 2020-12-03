@@ -5,26 +5,25 @@ const log = require("../../Internals/handlers/log"),
 	Profile = require("../../Internals/handlers/profileHandler");
 
 module.exports = {
-	commands: ["ban"],
-	example: "ban abdoul",
-	description: "Ban a user",
+	commands: ["kick"],
+	example: "kick abdoul Get Rekt",
+	description: "kick a user",
 	args: [
 		{
 			name: "user",
 			description: "The user you're muting"
 		}, {
-			name: "time",
-			description: "The time they're going to be banned for",
+			name: "reason",
+			description: "The reason for kicking",
 			optional: true
 		}
 	],
 	execute: async (bot, msg, args) => {
 		let m = await msg.channel.createMessage(`${Emojis.loading} Grabbing user information...`),
 			user = await Profile.search(bot, args[0], msg.author, m),
+			reason = args[1] ? reason = args.slice(1).join(" ") : null,
 			warning,
-			member,
-			reason,
-			time;
+			member;
 
 		if (!user) return m.edit(`${Emojis.x} I could not find a user called \`${args[0]}\``);
 
@@ -35,29 +34,26 @@ module.exports = {
 			if (!warning) return m.edit(`${Emojis.x} User cancelled operation.`);
 			m.edit(`${Emojis.warning.yellow} What do you want the reason to be?`);
 
-			reason = await msg.channel.awaitMessages(m => m.author.id === msg.author.id, { time: 30000, maxMatches: 1 });
-			if (!reason.length || /cancel/gi.test(reason[0].content)) return m.edit(`${Emojis.warning.red} Cancelled.`);
-			m.edit(`${Emojis.loading} Banning user...`);
+			m.edit(`${Emojis.loading} Kicking user...`);
 			user.createMessage({
 				embed: {
-					title: "You have been banned",
-					description: `You have been banned from ${name}.`,
+					title: "You have been kicked",
+					description: `You have been kicked from ${name}.`,
 					fields: [
 						{
 							name: "Moderator",
 							value: msg.author.tag
 						}, {
 							name: "Reason",
-							value: reason[0].content ? reason[0].content : null
+							value: reason ? reason : null
 						}
 					],
-					color: colors.ban
+					color: colors.kick
 				}
 			});
 			setTimeout(async () => {
-				await msg.guild.banMember(member.id, 0, reason[0].content);
-				time = args[1] && !isNaN(args[1].slice(0, -1)) ? time = args[1] : time = null;
-				await log.add(bot, member, msg.member, "ban", time, reason[0].content);
+				await msg.guild.kickMember(member.id, reason);
+				await log.add(bot, member, msg.member, "kick", null, reason);
 				await Profile.archive(bot, user);
 			}, 1000);
 		} catch (e) {
@@ -65,6 +61,6 @@ module.exports = {
 			throw new Error(e);
 		}
 
-		m.edit(`${Emojis.tick} Successfully banned \`${member.tag}\` for \`${reason}.\``);
+		m.edit(`${Emojis.tick} Successfully kicked \`${member.tag}\` for \`${reason}.\``);
 	}
 };

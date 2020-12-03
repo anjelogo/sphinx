@@ -1,8 +1,7 @@
 const log = require("../../Internals/handlers/log"),
 	Emojis = require("../../Utils/emojis.json"),
-	{ colors } = require("../../Utils/config.json"),
+	{ colors, roles, name } = require("../../Utils/config.json"),
 	{ findMember, sendWarning } = require("../../Utils/util"),
-	{ roles } = require("../../Utils/config.json"),
 	{ search } = require("../../Internals/handlers/profileHandler");
 
 module.exports = {
@@ -44,7 +43,7 @@ module.exports = {
 			user.createMessage({
 				embed: {
 					title: "You have been muted",
-					description: "You have been muted in sphinx.",
+					description: `You have been muted in ${name}.`,
 					fields: [
 						{
 							name: "Moderator",
