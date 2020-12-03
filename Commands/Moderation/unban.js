@@ -6,7 +6,7 @@ const log = require("../../Internals/handlers/log"),
 module.exports = {
 	commands: ["unban"],
 	example: "unban abdoul I want to hear your crying again",
-	description: "Unban a user that's been banned (ID ONLY)",
+	description: "Unban a user that's been banned",
 	args: [
 		{
 			name: "user",
