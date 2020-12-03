@@ -62,6 +62,6 @@ module.exports = {
 			throw new Error(e);
 		}
 
-		m.edit(`${Emojis.tick} Successfully banned \`${member.tag}\` for \`${reason}.\``);
+		m.edit(`${Emojis.tick} Successfully unmuted \`${member.tag}\` for \`${reason}.\``);
 	}
 };
