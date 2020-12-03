@@ -11,7 +11,7 @@ module.exports = {
 	args: [
 		{
 			name: "user",
-			description: "The user you're muting"
+			description: "The user you're banning"
 		}, {
 			name: "time",
 			description: "The time they're going to be banned for",
@@ -41,6 +41,7 @@ module.exports = {
 			reason = await msg.channel.awaitMessages(m => m.author.id === msg.author.id, { time: 30000, maxMatches: 1 });
 			if (!reason.length || /cancel/gi.test(reason[0].content)) return m.edit(`${Emojis.warning.red} Cancelled.`);
 			m.edit(`${Emojis.loading} Banning user...`);
+
 			user.createMessage({
 				embed: {
 					title: "You have been banned",

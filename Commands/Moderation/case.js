@@ -1,7 +1,7 @@
 const log = require("../../Internals/handlers/log"),
 	Emojis = require("../../Utils/emojis.json"),
 	{ colors } = require("../../Utils/config.json"),
-	{ findMember, findUser } = require("../../Utils/util");
+	{ search } = require("../../Internals/handlers/profileHandler");
 
 module.exports = {
 	commands: ["case"],
@@ -20,9 +20,9 @@ module.exports = {
 
 		if (!Case) return m.edit(`${Emojis.x} Couldn't find a case with the number \`${caseNum}\`.`);
 
-		const user = findUser(bot, Case.userID),
-			moderator = findMember(msg.guild, Case.moderator),
-			resolvedModerator = Case.resolved ? findMember(msg.guild, Case.resolved.moderator) : null,
+		const user = await search(bot, Case.userID, msg.author, m),
+			moderator = await search(bot, Case.moderator, msg.author, m),
+			resolvedModerator = Case.resolved ? await search(bot, Case.resolved.moderator, msg.author, m) : null,
 			embed = {
 				title: `${Case.action.replace(/^\w/, c => c.toUpperCase())} ${Case.resolved ? "(Resolved) " : ""}| Case #${caseNum}`,
 				thumbnail: {
@@ -35,7 +35,7 @@ module.exports = {
 						inline: true
 					}, {
 						name: "Moderator",
-						value: Case.resolved ? `${resolvedModerator.tag}\n~~${moderator.tag}~~` : moderator.tag,
+						value: Case.resolved ? `${resolvedModerator.mention}\n~~${moderator.mention}~~` : moderator.mention,
 						inline: true
 					}, {
 						name: "Reason",

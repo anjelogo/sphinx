@@ -1,5 +1,5 @@
-const { colors } = require("../../Utils/config.json"),
-	{ findUser, findMember, calculate_age } = require("../../Utils/util"),
+const { colors, guildID, developers } = require("../../Utils/config.json"),
+	{ findUser, findMember, calculate_age, findBanned } = require("../../Utils/util"),
 	Emojis = require("../../Utils/emojis.json");
 
 module.exports = {
@@ -174,15 +174,19 @@ module.exports = {
 		};
 
 		const third = async () => {
-			let user = findMember(m.guild, query);
+			let user = findMember(m.guild, query),
+				guild = bot.guilds.get(guildID),
+				bans = await guild.getBans();
+
 			if (!user) user = findUser(bot, query);
+			if (!user && developers.includes(author.id)) user = findBanned(bans, query);
 
 			if (!user) {
 				await m.edit(`${Emojis.warning.red} No results.`);
 				return undefined;
 			} else {
 				await m.edit(`${Emojis.loading} Loading user...`);
-				return user.user;
+				return user;
 			}
 		};
 

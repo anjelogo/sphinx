@@ -146,7 +146,7 @@ module.exports = {
 	},
 
 	isDeveloper(user) {
-		return (Config.developers && Config.developers.includes(user.id));
+		return (Config.developers.includes(user.id));
 	},
 
 	calculate_age(dob) {

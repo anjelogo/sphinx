@@ -1,6 +1,7 @@
 const log = require("../../Internals/handlers/log"),
 	Emojis = require("../../Utils/emojis.json"),
-	{ sendWarning, findBanned } = require("../../Utils/util");
+	{ sendWarning } = require("../../Utils/util"),
+	{ search } = require("../../Internals/handlers/profileHandler");
 
 module.exports = {
 	commands: ["unban"],
@@ -18,9 +19,8 @@ module.exports = {
 	],
 	execute: async (bot, msg, args) => {
 		let m = await msg.channel.createMessage(`${Emojis.loading} Grabbing user information...`),
-			reason = args[1] ? reason = args.slice(1).join(" ") : null,
-			bans = await msg.guild.getBans(),
-			user = findBanned(bans, args[0]),
+			reason = args[1] ? args.slice(1).join(" ") : null,
+			user = await search(bot, args[0], msg.autjor, m),
 			warning,
 			caseNum,
 			cases;
@@ -43,6 +43,6 @@ module.exports = {
 			throw new Error(e);
 		}
 
-		m.edit(`${Emojis.tick} Successfully unbanned \`${user.tag}.\``);
+		m.edit(`${Emojis.tick} Successfully unbanned \`${user.tag}\` for \`${reason}.\``);
 	}
 };

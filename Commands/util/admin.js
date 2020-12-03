@@ -47,7 +47,7 @@ module.exports = {
 			description: "Forcibly resolve a broken ticket",
 			args: [
 				{
-					name: "casenum",
+					name: "case number",
 					description: "The case number to resolve"
 				}
 			]

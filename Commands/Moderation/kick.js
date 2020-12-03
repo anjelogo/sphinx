@@ -21,7 +21,7 @@ module.exports = {
 	execute: async (bot, msg, args) => {
 		let m = await msg.channel.createMessage(`${Emojis.loading} Grabbing user information...`),
 			user = await Profile.search(bot, args[0], msg.author, m),
-			reason = args[1] ? reason = args.slice(1).join(" ") : null,
+			reason = args[1] ? args.slice(1).join(" ") : null,
 			warning,
 			member;
 

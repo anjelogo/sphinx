@@ -58,6 +58,6 @@ module.exports = {
 		}
 
 		await log.add(bot, member, msg.member, "warn", null, reason);
-		m.edit(`${Emojis.tick} I have successfully warned \`${user.tag}\` for \`${reason}\``);
+		m.edit(`${Emojis.tick} Successfully warned \`${user.tag}\` for \`${reason}\``);
 	}
 };

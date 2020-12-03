@@ -21,7 +21,7 @@ module.exports = {
 	execute: async (bot, msg, args) => {
 		let m = await msg.channel.createMessage(`${Emojis.loading} Grabbing user information...`),
 			user = await search(bot, args[0], msg.author, m),
-			reason = args[1] ? reason = args.slice(1).join(" ") : null,
+			reason = args[1] ? args.slice(1).join(" ") : null,
 			warning,
 			caseNum,
 			member,
@@ -37,7 +37,7 @@ module.exports = {
 		try {
 			warning = await sendWarning(m, msg.author);
 			if (!warning) return m.edit(`${Emojis.x} User cancelled operation.`);
-			m.edit(`${Emojis.warning.yellow} Unmuting user...`);
+			m.edit(`${Emojis.loading} Unmuting user...`);
 
 			user.createMessage({
 				embed: {
@@ -62,6 +62,6 @@ module.exports = {
 			throw new Error(e);
 		}
 
-		m.edit(`${Emojis.tick} Successfully unmuted \`${member.tag}.\``);
+		m.edit(`${Emojis.tick} Successfully banned \`${member.tag}\` for \`${reason}.\``);
 	}
 };

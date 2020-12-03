@@ -66,6 +66,6 @@ module.exports = {
 			throw new Error(e);
 		}
 
-		m.edit(`${Emojis.tick} Successfully muted ${member.tag}.`);
+		m.edit(`${Emojis.tick} Successfully muted \`${member.tag}\` for \`${reason[0].content}.\``);
 	}
 };
