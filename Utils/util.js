@@ -5,7 +5,7 @@ const Config = require("./config.json"),
 
 module.exports = {
 	
-	async sendWarning(m, author) {
+	async sendWarning (m, author) {
 		m.edit(`${Emojis.warning.yellow} Are you sure you want to do this?\n\nRespond with: \`yes\`, \`y\`, \`no\`, \`n\`.`);
 
 		let response = await m.channel.awaitMessages(m => m.author.id === author.id, { maxMatches: 1, time: 25000});
@@ -15,7 +15,7 @@ module.exports = {
 		return true;
 	},
 
-	createHelpEmbed(cmd, content = null) {
+	createHelpEmbed (cmd, content = null) {
 		let usage,
 			argStrings = [],
 			fields = [];
@@ -94,7 +94,7 @@ module.exports = {
 		return obj;
 	},
 
-	getAttachments(msg) {
+	getAttachments (msg) {
 		const extensions = [".png", ".jpg", ".jpeg", ".gif", ".webp"],
 			linkFileReg = /https?:\/\/(?:\w+\.)?[\w-]+\.[\w]{2,3}(?:\/[\w-_.]+)+\.(?:png|jpg|jpeg|gif|webp)/,
 			embed = msg.embeds.find(e => e.type === "rich" && e.image && extensions.includes(path.extname(e.image.url))),
@@ -107,7 +107,7 @@ module.exports = {
 		return null;
 	},
 
-	findMember(server, user) {
+	findMember (server, user) {
 		if (!server || !user) return undefined;
 		if (/^\d+$/.test(user)) return server.members.get(user); // ID 
 		else if (/^<@!?\d+>$/.test(user)) return server.members.get(user.match(/\d+/)[0]); // Mention
@@ -116,7 +116,7 @@ module.exports = {
 		return server.members.find((m) => m.nick && m.nick.toLowerCase() === user.toLowerCase()); //nickname
 	},
 
-	findUser(bot, user) {
+	findUser (bot, user) {
 		if (!user) return undefined;
 		if (/^\d+$/.test(user)) return bot.users.get(user); // ID 
 		else if (/^<@!?\d+>$/.test(user)) return bot.users.get(user.match(/\d+/)[0]); // Mention
@@ -124,39 +124,39 @@ module.exports = {
 		else if (bot.users.find((m) => m.username.toLowerCase() === user.toLowerCase())) return bot.users.find((m) => m.username.toLowerCase() === user.toLowerCase()); // username
 	},
 
-	findBanned(bans, user) {
+	findBanned (bans, user) {
 		if (!user) return undefined;
 		if (/^\d+$/.test(user)) return bans.find(b => b && b.user.id === user).user; // ID
 		else if (/^\w+#\d{4}$/.test(user)) return bans.find(b => b.user.username.toLowerCase() === user.toLowerCase().match(/^\w+/)[0] && b.user.discriminator === String(user.match(/\d{4}/)[0])).user; // username and discrim
 		else if (bans.find(b => b.user.username.toLowerCase() === user.toLowerCase())) return bans.find(b => b.user.username.toLowerCase() === user.toLowerCase()).user; // username
 	},
 
-	findRole(server, role) {
+	findRole (server, role) {
 		if (!server || !role) return undefined;
 		if (/^\d+$/.test(role)) return server.roles.get(role); // ID 
 		else if (/^<@&\d+>$/.test(role)) return server.roles.get(role.match(/\d+/)[0]); // Mention
 		return server.roles.find((r) => r.name.toLowerCase() === role.toLowerCase()); // name
 	},
 
-	findChannel(server, channel) {
+	findChannel (server, channel) {
 		if (!server || !channel) return undefined;
 		if (/^\d+$/.test(channel)) return server.channels.get(channel); // ID 
 		else if (/^<#\d+>$/.test(channel)) return server.channels.get(channel.match(/\d+/)[0]); // Mention
 		return server.channels.find((r) => r.name.toLowerCase() === channel.toLowerCase()); // name
 	},
 
-	isDeveloper(user) {
+	isDeveloper (user) {
 		return (Config.developers.includes(user.id));
 	},
 
-	calculate_age(dob) {
+	calculate_age (dob) {
 		let d = new Date(dob);
 		let diff_ms = Date.now() - d.getTime();
 		let age_dt = new Date(diff_ms); 
 		return Math.abs(age_dt.getUTCFullYear() - 1970);
 	},
 
-	clean(text) {
+	clean (text) {
 		if (typeof text !== "string") text = inspect(text, { depth: 0 });
 		text = text
 			.replace(/`/g, "'" + String.fromCharCode(8203))

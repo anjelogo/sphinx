@@ -34,7 +34,7 @@ module.exports = {
 		try {
 			warning = await sendWarning(m, msg.author);
 			if (!warning) return m.edit(`${Emojis.x} User cancelled operation.`);
-			m.edit(`${Emojis.loading} Unbanning user.`);
+			m.edit(`${Emojis.loading} Unbanning user...`);
 
 			await msg.guild.unbanMember(user.id, reason);
 			await log.resolve(bot, caseNum, reason, msg.author);

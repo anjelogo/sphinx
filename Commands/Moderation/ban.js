@@ -52,7 +52,7 @@ module.exports = {
 							value: msg.author.tag
 						}, {
 							name: "Reason",
-							value: reason[0].content ? reason[0].content : null
+							value: reason[0].content
 						}
 					],
 					color: colors.ban

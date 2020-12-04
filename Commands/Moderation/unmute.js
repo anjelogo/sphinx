@@ -49,7 +49,7 @@ module.exports = {
 							value: msg.member.tag
 						}, {
 							name: "Reason",
-							value: reason ? reason : null
+							value: reason ? reason : "No reason provided."
 						}
 					],
 					color: colors.resolved

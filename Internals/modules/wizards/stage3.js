@@ -11,19 +11,18 @@ module.exports = async (bot, user, emoji) => {
 	if (!Wizard.is(bot, user)) return;
 
 	const Session = await Wizard.get(bot, user);
-	if (!Session) throw new Error("Wizard not found!");
+	if (!Session) return;
 	if (Session.stage !== 3) return; //Session MUST be stage 3
 
-	const cancelled = {
-		title: "Cancelled Profile Creator",
-		description: "I've cancelled creating your profile.",
-		color: colors.red 
-	};
-
-	let obj = Session.data;
-	let channel = bot.privateChannels.get(Session.channelID);
-	let m = channel.messages.get(Session.messageID);
-	let embed = m.embeds[0];
+	let obj = Session.data,
+		channel = bot.privateChannels.get(Session.channelID),
+		m = channel.messages.get(Session.messageID),
+		embed = m.embeds[0],
+		cancelled = {
+			title: "Cancelled Profile Creator",
+			description: "I've cancelled creating your profile.",
+			color: colors.red 
+		};
 
 	//Gender Preference
 	obj.preference = {};

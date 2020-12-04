@@ -6,6 +6,7 @@ module.exports = (bot) => {
 		if (guild.id !== guildID) return;
 
 		const archive = bot.m.get("archived"),
+			profiles = bot.m.get("profiles"),
 			data = await archive.findOne({ userID: member.id }),
 			history = await log.get(bot, "user", member),
 			prg = {
@@ -40,7 +41,7 @@ module.exports = (bot) => {
 
 		member.edit({ nick: name });
 
-		await archive.aggregate([{ $match: { userID: member.id } }, { $out: "profiles" }]);
+		await profiles.insert(data);
 		await archive.findOneAndDelete({ userID: member.id });
 	});
 };

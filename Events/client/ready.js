@@ -14,7 +14,7 @@ module.exports = (bot) => {
 
 		queueHandler(bot);
 		
-		const Wizards = await bot.m.get("wizards"),
+		let Wizards = await bot.m.get("wizards"),
 			wizards = await Wizards.find({}),
 			Queue = await bot.m.get("queue"),
 			queue = await Queue.find({}),
@@ -58,6 +58,7 @@ module.exports = (bot) => {
 
 		setInterval(async () => {
 			if (await Queue.count() <= 0 ) return;
+			queue = await Queue.find({});
 			for (let q of queue) {
 				let member = findMember(guild, q.userID);
 				member.createMessage({ embed: { title: "Queue Reminder", description: `${Emojis.warning.yellow} There are ${await Queue.count()} user(s) in queue.`, color: colors.embedColor }});

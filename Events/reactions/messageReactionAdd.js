@@ -20,7 +20,7 @@ module.exports = (bot) => {
 			if (msg.id !== Session.messageID) return;
 			if (![2, 3, 4].includes(Session.stage)) return;
 
-			return await stages[Session.stage-2];
+			return await stages[Session.stage - 2];
 		} else if (Reaction.messageIDs.includes(msg.id)) return await reactionRoles(bot, member, emoji, "add");
 	});
 };

@@ -5,30 +5,26 @@ const { defaultPrefix, colors } = require("../../Utils/config.json"),
 module.exports = async (bot, msg) => {
 	if (msg.author.bot) return;
 
-	const mentionPrefix = msg.content.match(new RegExp(`<@!?${bot.user.id}> `, "g"));
-	let prefix = defaultPrefix;
+	let mentionPrefix = msg.content.match(new RegExp(`<@!?${bot.user.id}> `, "g")),
+		prefix = defaultPrefix,
+		neededClientPerms = [];
+
 	if (!msg.content.startsWith(prefix) && mentionPrefix && msg.content.startsWith(mentionPrefix[0])) {
 		prefix = `${mentionPrefix[0]}`;
 		if (msg.mentions.length > 1) msg.mentions = msg.mentions.slice(1);
 		if (msg.mentions.length === 1 && msg.mentions[0] === bot && mentionPrefix.length === 1) msg.mentions = msg.mentions.slice(1);
 	}
+
 	if (!msg.content.startsWith(prefix)) return;
 
-	let command = bot.commands[Object.keys(bot.commands).filter((c) => bot.commands[c].commands.indexOf(msg.content.toLowerCase().replace(prefix.toLowerCase(), "").split(" ")[0]) > -1)[0]];
-	const args = ((msg.content.replace(prefix, "").trim().split(/ +/g).length > 1) ? msg.content.replace(prefix, "").trim().split(/ +/g).slice(1) : []);
-	if (!command || command.devOnly && !isDeveloper(msg.author) || command.category === "Moderation" && !isDeveloper(msg.author)) return;	
+	let command = bot.commands[Object.keys(bot.commands).filter((c) => bot.commands[c].commands.indexOf(msg.content.toLowerCase().replace(prefix.toLowerCase(), "").split(" ")[0]) > -1)[0]],
+		args = ((msg.content.replace(prefix, "").trim().split(/ +/g).length > 1) ? msg.content.replace(prefix, "").trim().split(/ +/g).slice(1) : []);
+	
+	if (!command || (command.devOnly || command.category === "Moderation") && !isDeveloper(msg.author)) return;	
 	if (msg.channel.type !== 0 && !command.dmEnabled) return msg.channel.createMessage(`${Emojis.x} You can only run this command in servers!`);
 
 	if (msg.channel.type === 0) {
-		let neededClientPerms = [];
-
-		if (command.clientPerms) {
-			if (command.clientPerms) {
-				command.clientPerms.forEach(cp => {
-					if (!msg.channel.permissionsOf(bot.user.id).has(cp)) neededClientPerms.push(cp);
-				});
-			}
-		}
+		command.clientPerms ? command.clientPerms.forEach(cp => !msg.channel.permissionsOf(bot.user.id).has(cp) ? neededClientPerms.push(cp) : null ) : null;
 
 		if (command.subcommands && args[0]) {
 			let subcommand = command.subcommands.find(subcmd => subcmd.name.toLowerCase() === args[0].toLowerCase());
@@ -38,10 +34,9 @@ module.exports = async (bot, msg) => {
 				});
 			}
 		}
-
-		if (neededClientPerms.length > 0) return msg.channel.createMessage(`${Emojis.x} I need more permissions to run this command. Permissions needed: \`${neededClientPerms.join(", ")}\`\n\nYou can either enable it globally in server settings, or enable it channel-only by giving it the \`${neededClientPerms.join(" ")}\` permissions in channel settings.`);
 	}
 
+	if (neededClientPerms.length > 0) return msg.channel.createMessage(`${Emojis.x} I need more permissions to run this command. Permissions needed: \`${neededClientPerms.join(", ")}\`\n\nYou can either enable it globally in server settings, or enable it channel-only by giving it the \`${neededClientPerms.join(" ")}\` permissions in channel settings.`);
 	if (command.args && args.length < command.args.filter(a => !a.optional).length) return msg.channel.createMessage(createHelpEmbed(command, "It looks like you do not have enough arguments!"));
 	if (command.subcommands && args[0]) {
 		for (let i = 0; i < command.subcommands.length; i++) {

@@ -3,23 +3,16 @@ const Profile = require("../../handlers/profileHandler");
 const Wizard = require("./wizard");
 
 module.exports = async (bot, user, m) => {
-	let data = await Profile.fetch(bot, user);
-	if (!data) throw new Error("Error in stage 4");
 
-	if (!Wizard.is(bot, user)) return;
-
-	const Session = await Wizard.get(bot, user);
-	if (!Session) throw new Error("Wizard not found!");
-	if (Session.stage !== 5) return; //Session MUST be stage 4
-
-	let name = `${data.profile.name.first} ${data.profile.name.last}`;
-	if (name.length > 32) name = data.profile.name.first;
-	const guild = bot.guilds.get(guildID);
-	const newProfiles = guild.channels.get(channels.newProfiles);
-	const embed = await Profile.embed(bot, user);
-	const obj = Session.data;
-
-	const prg = {
+	let data = await Profile.fetch(bot, user),
+		Session = await Wizard.get(bot, user),
+		name = `${data.profile.name.first} ${data.profile.name.last}`,
+		guild = bot.guilds.get(guildID),
+		newProfiles = guild.channels.get(channels.newProfiles),
+		embed = await Profile.embed(bot, user),
+		obj = Session.data,
+		rolesToBeAdded = [],
+		prg = {
 			"male": "781824302252032011",
 			"female": "781824472361336882",
 			"none": "782465555209912351"
@@ -34,7 +27,12 @@ module.exports = async (bot, user, m) => {
 			"female": "782197952616988703"
 		};
 
-	let rolesToBeAdded = [];
+	if (!data) throw new Error("Error in stage 4");
+	if (!Session) return;
+	if (Session.stage !== 5) return; //Session MUST be stage 4
+	if (!Wizard.is(bot, user)) return;
+	if (name.length > 32) name = data.profile.name.first;
+
 	rolesToBeAdded.push(prg[obj.preference.gender]);
 	rolesToBeAdded.push(prr[obj.preference.status]);
 	rolesToBeAdded.push(gender[obj.gender]);

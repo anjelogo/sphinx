@@ -8,7 +8,7 @@ module.exports = {
 			cases = await db.find({}),
 			guild = bot.guilds.get(guildID),
 			caseNum = cases.length > 0 ? cases[cases.length - 1].caseNum + 1 : 1,
-			string = reason ? `${reason}${time ? ` | ${time}` : ""}` : `Moderator please do !reason ${obj.caseNum}${time ? ` | ${time}` : ""}`,
+			string = reason ? `${reason}${time ? ` | ${time}` : ""}` : `Moderator please do !reason ${caseNum}${time ? ` | ${time}` : ""}`,
 			embed = {
 				title: `${action[0].toUpperCase() + action.substring(1)} | Case #${caseNum}`,
 				thumbnail: {

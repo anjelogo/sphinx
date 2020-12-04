@@ -47,7 +47,7 @@ module.exports = {
 							value: msg.author.tag
 						}, {
 							name: "Reason",
-							value: reason ? reason : null
+							value: reason ? reason : "No reason provided."
 						}
 					],
 					color: colors.kick

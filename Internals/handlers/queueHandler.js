@@ -12,6 +12,7 @@ module.exports = async (bot) => {
 
 		let numOfChannels = await bot.m.get("channels").count({}),
 			queued = await bot.m.get("queue").count({});
+			
 		if (numOfChannels <= maxChannelSize && busy === false && queued > 1) start();
 
 	}, 1500);

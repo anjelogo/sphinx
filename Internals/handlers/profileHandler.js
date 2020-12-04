@@ -57,19 +57,28 @@ module.exports = {
 	},
 
 	async archive (bot, query) {
-		const profiles = bot.m.get("profiles"),
-			archive = bot.m.get("archived"),
-			data = await profiles.findOne({ userID: query.id });
+		const data = await bot.m.get("profiles").findOne({ userID: query.id });
 
+		if (!data) return;
 
-		await archive.insert(data);
-		return await profiles.findOneAndDelete({ userID: query.id });
+		await bot.m.get("archived").insert(data);
+		return await bot.m.get("profiles").findOneAndDelete({ userID: query.id });
 	},
 
 	async embed (bot, user) {
 		const db = bot.m.get("profiles"),
 			data = await db.findOne({ userID: user.id }),
-			pr = data.profile;
+			pr = data.profile,
+			prg = {
+				"male": "♂️ **Male**",
+				"female": "♀️ **Female**",
+				"none": "🚫 **None**"
+			},
+			prs = {
+				"single": "🧍 **Single**",
+				"taken": "🧑‍🤝‍🧑 **Taken**",
+				"looking": "👀 **Looking**"
+			};
 
 		let obj = {
 			author: {
@@ -82,15 +91,15 @@ module.exports = {
 			fields: [
 				{
 					name: "Gender",
-					value: pr.gender === "male" ? "♂️ **Male**" : "♀️ **Female**",
+					value: prg[pr.gender],
 					inline: true
 				}, {
 					name: "Preferred Gender",
-					value: pr.preference.gender === "none" ? "🚫 **None**" : (pr.preference.gender === "male" ? "♂️ **Male**" : "♀️ **Female**"),
+					value: prg[pr.preference.gender],
 					inline: true
 				}, {
 					name: "Relationship Status",
-					value: pr.preference.status === "looking" ? "👀 **Looking**" : (pr.preference.status === "single" ? "🧍 **Single**" : "🧑‍🤝‍🧑 **Taken**"),
+					value: prs[pr.preference.status],
 					inline: true
 				}, {
 					name: "Age",
@@ -181,13 +190,8 @@ module.exports = {
 			if (!user) user = findUser(bot, query);
 			if (!user && developers.includes(author.id)) user = findBanned(bans, query);
 
-			if (!user) {
-				await m.edit(`${Emojis.warning.red} No results.`);
-				return undefined;
-			} else {
-				await m.edit(`${Emojis.loading} Loading user...`);
-				return user;
-			}
+			if (!user) return undefined;
+			else users.push(user);
 		};
 
 		const multiple = async () => {
@@ -213,26 +217,31 @@ module.exports = {
 				await m.edit({ content: `${Emojis.x} Timed out, returning default user.`, embed: null });
 				return users[0];
 			} else if (!indexRegex.test(res[0].content)) {
-				await m.edit({ content: `${Emojis.x} Inavlid selection, returning default user.`, embed: null });
+				await m.edit({ content: `${Emojis.x} Invalid selection, returning default user.`, embed: null });
 				return users[0];
 			}
 			res[0].delete();
 
+			await m.edit({ content: `${Emojis.loading} Loading user...`, embed: null });
 			return users[Number(res[0].content)];
 		};
 
-		await first();
-		if (users.length && users.length > 1) return await multiple();
-		else if (users.length) {
+		let arr = [
+			first(),
+			second(),
+			third()
+		];
+
+		for (let i = 0; i < arr.length; i++) {
+			await arr[i];
+			if (users.length) break;
+		}
+
+		if (!users.length) return undefined;
+		if (users.length > 1) return await multiple();
+		else {
 			await m.edit(`${Emojis.loading} Loading user...`);
 			return users[0];
-		} else {
-			await second();
-			if (users.length && users.length > 1) return await multiple();
-			else if (users.length) {
-				await m.edit(`${Emojis.loading} Loading user...`);
-				return users[0];
-			} else return await third();
 		}
 	}
 };

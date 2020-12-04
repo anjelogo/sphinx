@@ -74,9 +74,9 @@ module.exports = {
 
 		switch (action.toLowerCase()) {
 		case "queue": {
-			let m = await msg.channel.createMessage(`${Emojis.x} Grabbing user information...`),
-				user1 = await Profile.search(bot, args[1], msg),
-				user2 = await Profile.search(bot, args[2], msg),
+			let m = await msg.channel.createMessage(`${Emojis.loading} Grabbing user information...`),
+				user1 = await Profile.search(bot, args[1], msg.author, m),
+				user2 = await Profile.search(bot, args[2], msg.author, m),
 				warning;
 
 			if (!user2 || !args[2]) user2 = msg.member;
@@ -165,6 +165,7 @@ module.exports = {
 		case "clearcases": {
 			let m = await msg.channel.createMessage(`${Emojis.loading} Grabbing user information...`),
 				user = await Profile.search(bot, args[1], msg.author, m),
+				bans = await msg.guild.getBans(),
 				member = msg.guild.members.get(user.id),
 				history = await log.get(bot, "user", user),
 				warning;
@@ -178,6 +179,7 @@ module.exports = {
 	
 				for (let Case of history)	{
 					if (Case.action === "mute" && member.roles.includes(Config.roles.muted)) msg.guild.removeMemberRole(user.id, Config.roles.muted);
+					if (Case.action === "ban" && bans.filter(b => b.user.id === user.id)) msg.guild.unbanMember(user.id, "**[ADMIN]** Cleared all user cases.");
 					await log.resolve(bot, Case.caseNum, "**[ADMIN]** Cleared all user cases.", msg.member);
 				}
 			} catch (e) {
