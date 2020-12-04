@@ -73,7 +73,7 @@ module.exports = {
 		reason = `**[AUTOMOD]** ${infractions} Infractions`;
 
 		switch (punishment) {
-		case "mute": {
+		case "mute": 
 			if (history.filter(c => c.action === "mute").length) return;
 			user.createMessage({
 				embed: {
@@ -93,8 +93,7 @@ module.exports = {
 			});
 			await guild.addMemberRole(user.id, roles.muted);
 			break;
-		}
-		case "ban": {
+		case "ban": 
 			if (history.filter(c => c.action === "ban").length) return;
 			if (history.filter(c => c.action === "mute").length) await this.resolve(bot, history.filter(c => c.action === "mute")[0].caseNum, "**[AUTOMOD]** Unmuted for ban.", bot.user);
 			user.createMessage({
@@ -116,7 +115,6 @@ module.exports = {
 			await guild.banMember(user.id, 0, `${reason} | 7d`);
 			await Profile.archive(bot, user);
 			break;
-		}
 		}
 
 		return await this.add(bot, user, bot.user, punishment, "7d", reason);
