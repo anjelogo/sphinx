@@ -46,8 +46,7 @@ module.exports = {
 				}
 			}
 			return realLinks.length ? realLinks : null;
-		} else
-			return null;
+		} else return null;
 	},
 
 	createHelpEmbed (cmd, content = null) {

@@ -27,7 +27,7 @@ module.exports = {
 
 		if (!Case) return m.edit(`${Emojis.x} Couldn't find a case with the number \`${caseNum}\`.`);
 
-		if (Case.resolve) return m.edit(`${Emojis.x} That case is already resolved!`);
+		if (Case.resolved) return m.edit(`${Emojis.x} That case is already resolved!`);
 		if (Case.action !== "warn") return m.edit(`${Emojis.x} That case is not a warn!`);
 
 		try {
