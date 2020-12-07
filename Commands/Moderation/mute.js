@@ -1,6 +1,7 @@
 const log = require("../../Internals/handlers/log"),
 	Emojis = require("../../Utils/emojis.json"),
-	{ colors, roles, name } = require("../../Utils/config.json"),
+	Roles = require("../../Utils/roles.json"),
+	{ colors, name } = require("../../Utils/config.json"),
 	{ findMember, sendWarning } = require("../../Utils/util"),
 	{ search } = require("../../Internals/handlers/profileHandler");
 
@@ -29,7 +30,7 @@ module.exports = {
 		if (!user) return m.edit(`${Emojis.x} I could not find a user called \`${args[0]}\``);
 
 		member = findMember(msg.guild, user.id);
-		if (member.roles.includes(roles.muted)) return m.edit(`${Emojis.x} That user is already muted!`);
+		if (member.roles.includes(Roles.util.muted)) return m.edit(`${Emojis.x} That user is already muted!`);
 		if (member.id === msg.author.id) return m.edit(`${Emojis.x} You can't mute yourself, silly!`);
 		if (!member.punishable(msg.author) || user.id === bot.user.id) return m.edit(`${Emojis.x} You can't mute that user!`);
 
@@ -58,7 +59,7 @@ module.exports = {
 					color: colors.mute
 				}
 			});
-			await msg.guild.addMemberRole(member.id, roles.muted);
+			await msg.guild.addMemberRole(member.id, Roles.util.muted);
 			time = args[1] && !isNaN(args[1].slice(0, -1)) ? time = args[1] : time = null;
 			await log.add(bot, member, msg.member, "mute", time, reason[0].content);
 		} catch (e) {

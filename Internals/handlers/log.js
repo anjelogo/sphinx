@@ -1,5 +1,6 @@
-const { channels, colors, guildID, roles } = require("../../Utils/config.json"),
-	Profile = require("../../Internals/handlers/profileHandler");
+const { channels, colors, guildID } = require("../../Utils/config.json"),
+	Profile = require("../../Internals/handlers/profileHandler"),
+	Roles = require("../../Utils/roles.json");
 
 module.exports = {
 
@@ -91,7 +92,7 @@ module.exports = {
 					color: colors.mute
 				}
 			});
-			await guild.addMemberRole(user.id, roles.muted);
+			await guild.addMemberRole(user.id, Roles.util.muted);
 			break;
 		case "ban": 
 			if (history.filter(c => c.action === "ban").length) return;

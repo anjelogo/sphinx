@@ -1,6 +1,7 @@
-const { guildID, roles, colors, channels } = require("../../../Utils/config.json");
-const Profile = require("../../handlers/profileHandler");
-const Wizard = require("./wizard");
+const { guildID, colors, channels } = require("../../../Utils/config.json"),
+	Profile = require("../../handlers/profileHandler"),
+	Wizard = require("./wizard"),
+	Roles = require("../../../Utils/roles.json");
 
 module.exports = async (bot, user, m) => {
 
@@ -11,21 +12,7 @@ module.exports = async (bot, user, m) => {
 		newProfiles = guild.channels.get(channels.newProfiles),
 		embed = await Profile.embed(bot, user),
 		obj = Session.data,
-		rolesToBeAdded = [],
-		prg = {
-			"male": "781824302252032011",
-			"female": "781824472361336882",
-			"none": "782465555209912351"
-		},
-		prr = {
-			"single": "782170638264696852",
-			"taken": "782170707227967518",
-			"looking": "782170741012430861"
-		},
-		gender = {
-			"male": "782197925114806282",
-			"female": "782197952616988703"
-		};
+		rolesToBeAdded = [];
 
 	if (!data) throw new Error("Error in stage 4");
 	if (!Session) return;
@@ -33,10 +20,10 @@ module.exports = async (bot, user, m) => {
 	if (!Wizard.is(bot, user)) return;
 	if (name.length > 32) name = data.profile.name.first;
 
-	rolesToBeAdded.push(prg[obj.preference.gender]);
-	rolesToBeAdded.push(prr[obj.preference.status]);
-	rolesToBeAdded.push(gender[obj.gender]);
-	rolesToBeAdded.push(roles.clearance);
+	rolesToBeAdded.push(Roles.preferences.gender[obj.preference.gender]);
+	rolesToBeAdded.push(Roles.preferences.status[obj.preference.status]);
+	rolesToBeAdded.push(Roles.gender[obj.gender]);
+	rolesToBeAdded.push(Roles.util.clearance);
 
 	try {
 		rolesToBeAdded.forEach(r => {

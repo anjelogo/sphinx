@@ -1,5 +1,4 @@
-const Reaction = require("../../Utils/reactionroles.json"),
-	reactionRoles = require("../../Internals/handlers/reactionRoles"),
+const reactionRoles = require("../../Internals/handlers/reactionRoles"),
 	{ guildID } = require("../../Utils/config.json"),
 	{ findMember } = require("../../Utils/util");
 
@@ -10,7 +9,7 @@ module.exports = (bot) => {
 			member = findMember(guild, userID);
 
 		if (member.bot) return;
-		if (Reaction.messageIDs.includes(msg.id)) return await reactionRoles(bot, member, emoji, "remove");
+		return await reactionRoles(bot, member, emoji, "remove", msg);
 	});
 
 };

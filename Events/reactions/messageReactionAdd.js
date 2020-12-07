@@ -2,7 +2,6 @@ const Wizard = require("../../Internals/modules/wizards/wizard"),
 	stage2 = require("../../Internals/modules/wizards/stage2"),
 	stage3 = require("../../Internals/modules/wizards/stage3"),
 	stage4 = require("../../Internals/modules/wizards/stage4"),
-	Reaction = require("../../Utils/reactionroles.json"),
 	reactionRoles = require("../../Internals/handlers/reactionRoles");
 
 module.exports = (bot) => {
@@ -21,6 +20,6 @@ module.exports = (bot) => {
 			if (![2, 3, 4].includes(Session.stage)) return;
 
 			return await stages[Session.stage - 2];
-		} else if (Reaction.messageIDs.includes(msg.id)) return await reactionRoles(bot, member, emoji, "add");
+		} else return await reactionRoles(bot, member, emoji, "add", msg);
 	});
 };

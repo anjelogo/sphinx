@@ -1,14 +1,15 @@
-const Reaction = require("../../Utils/reactionroles.json"),
-	Emojis = require("../../Utils/emojis.json"),
-	{ guildID, colors } = require("../../Utils/config.json");
+const Emojis = require("../../Utils/emojis.json"),
+	{ guildID, colors } = require("../../Utils/config.json"),
+	{ findRole } = require("../../Utils/util");
 
-module.exports = async (bot, user, emoji, type) => {
+module.exports = async (bot, user, emoji, type, msg) => {
+	const Session = await bot.m.get("reactionroles").findOne({ messageID: msg.id}),
+		guild = bot.guilds.get(guildID);
 
-	const guild = bot.guilds.get(guildID),
-		roleID = Reaction.roles[emoji.name],
-		role = guild.roles.get(roleID);
+	if (!Session || user.bot) return;
 
-	if (user.bot) return;
+	let roleID = Session.roles.find(r => r.reaction === emoji.name).role,
+		role = findRole(guild, roleID);
 
 	if (type === "add") {
 

@@ -37,6 +37,10 @@ module.exports = async (bot, user1, user2) => {
 	};
 
 	compatibility = Math.max( Math.round(med([(inCommon/i), (inCommon/j)]) * 10) / 10).toFixed(2) * 100;
+	roles = Object.keys(common).filter(c => common[c] > 1);
 
-	return compatibility;
+	return {
+		rate: compatibility,
+		inCommon: roles
+	};
 };

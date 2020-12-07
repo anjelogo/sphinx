@@ -1,8 +1,9 @@
-const { findMember, sendWarning } = require("../../Utils/util"),
+const { findMember, sendWarning, findRole } = require("../../Utils/util"),
 	createPrivate = require("../../Internals/modules/createPrivate"),
 	Profile = require("../../Internals/handlers/profileHandler"),
 	Config = require("../../Utils/config.json"),
 	Emojis = require("../../Utils/emojis.json"),
+	Roles = require("../../Utils/roles.json"),
 	log = require("../../Internals/handlers/log");
 
 module.exports = {
@@ -178,7 +179,7 @@ module.exports = {
 				m.edit(`${Emojis.loading} Deleting user's cases.`);
 	
 				for (let Case of history)	{
-					if (Case.action === "mute" && member.roles.includes(Config.roles.muted)) msg.guild.removeMemberRole(user.id, Config.roles.muted);
+					if (Case.action === "mute" && member.roles.includes(Config.roles.muted)) msg.guild.removeMemberRole(user.id, Roles.util.muted);
 					if (Case.action === "ban" && bans.filter(b => b.user.id === user.id)) msg.guild.unbanMember(user.id, "**[ADMIN]** Cleared all user cases.");
 					await log.resolve(bot, Case.caseNum, "**[ADMIN]** Cleared all user cases.", msg.member);
 				}
@@ -190,12 +191,137 @@ module.exports = {
 			m.edit(`${Emojis.tick} I have successfully cleared \`${history.length + 1}\` cases from \`${user.username}\``);
 			break;
 		}
+		case "reactionrole": {
+			let m = await msg.channel.createMessage(`${Emojis.loading} Waiting...`),
+				db = bot.m.get("reactionroles"),
+				title = "Reaction Roles",
+				listCompleted = false,
+				invalid = [],
+				roles = [],
+				embed = {
+					title: "Reaction Roles Setup",
+					description: "Complete the steps below\nYou can type `cancel` to cancel anytime",
+					fields: [],
+					color: Config.colors.winered
+				};
+				
+			//Title
+			embed.fields.push({
+				name: "Title",
+				value: "Type `none` to use the default title."
+			});
+
+			m.edit({ embed });
+
+			let resTitle = await msg.channel.awaitMessages(m => m.author.id === msg.author.id, { time: 35000, maxMatches: 1 });
+			if (!resTitle.length || /cancel/.test(resTitle[0].content.toLowerCase())) return m.edit({ content: `${Emojis.x} Cancelled.`, embed: null });
+		
+			resTitle[0].content.toLowerCase() !== "none" ? title = resTitle[0].content : title = "Reaction Roles";
+			embed.fields[0].value = `Title: ${title}`;
+
+			resTitle[0].delete();
+
+			embed.fields.push({
+				name: "Reaction Roles",
+				value: "Type `done` when you have sufficient roles."
+			});
+
+			while (listCompleted === false) {
+				let resReaction,
+					resRole,
+					arr = [],
+					reaction,
+					role,
+					str;
+				
+				roles.forEach(r => {
+					let role = findRole(msg.guild, r.role);
+					arr.push(`${r.reaction} - ${role.mention}`);
+				});
+				roles.length ? str = arr.join("\n") : str = "No Roles so far.";
+
+				embed.fields[1] = {
+					name: "Reaction Roles",
+					value: `Type \`done\` when you have sufficient roles.\n\n${str}\n\n**What reaction do you want to add?**`
+				};
+
+				m.edit({ embed });
+
+				resReaction = await msg.channel.awaitMessages(m => m.author.id === msg.author.id, { maxMatches: 1 });
+				if (!resReaction.length || /cancel/.test(resReaction[0].content.toLowerCase())) return m.edit({ content: `${Emojis.x} Cancelled.`, embed: null });
+				if (resReaction[0].content === "done") {
+					listCompleted === true;
+					resReaction[0].delete();
+					break;
+				}
+
+				resReaction[0].delete();
+
+				embed.fields[1] = {
+					name: "Reaction Roles",
+					value: `Type \`done\` when you have sufficient roles.\n\n${str}\n\n**What role do you want to add to ${resReaction[0].content}?**`
+				};
+				reaction = resReaction[0].content;
+				m.edit({ embed });
+
+				resRole = await msg.channel.awaitMessages(m => m.author.id === msg.author.id, { maxMatches: 1 });
+				if (!resRole.length || /cancel/.test(resRole[0].content.toLowerCase())) return m.edit({ content: `${Emojis.x} Cancelled.`, embed: null });
+
+				role = findRole(msg.guild, resRole[0].content);
+				if (!role) {
+					msg.channel.createMessage(`${Emojis.x} That's not a valid role!`);
+					resRole[0].delete();
+					continue;
+				}
+				roles.push({ reaction, role: role.id });
+				resRole[0].delete();
+			}
+
+			if (!roles.length) return m.edit(`${Emojis.x} No roles were added.`);
+
+			embed = {
+				title,
+				description: "Click on the reactions to get your roles.\n\n",
+				color: Config.colors.winered
+			};
+
+			roles.forEach(r => {
+				let role = findRole(msg.guild, r.role);
+				embed.description += `${r.reaction} - ${role.mention}\n`;
+			});
+
+			m.delete();
+			msg.delete();
+			m = await msg.channel.createMessage({ embed });
+
+			for (let r of roles) {
+				try {
+					m.addReaction(r.reaction);
+				} catch (e) {
+					invalid.push(r.reaction);
+					let index = roles.findIndex(rr => rr.reaction === r.reaction);
+					if (index > -1) roles.splice(index, 1);
+				}
+			}
+			
+			if (invalid.length) msg.channel.createMessage(`${Emojis.warning.red} The reaction(s) \`${invalid.join("`, `")}\` are invalid. They were not added to the reaction list.`);
+
+			const obj = {
+				messageID: m.id,
+				channelID: m.channel.id,
+				roles
+			};
+
+			await db.insert(obj);
+			break;
+		}
 		case "modmode": {
 			let m = await msg.channel.createMessage(`${Emojis.loading} Grabbing channel information...`),
-				channel = await db.findOne({ text: msg.channel.id }),
-				db = bot.m.get("channels"),
+				db = bot.m.get("channels"),	
+				channel,
 				warning;
 			
+			channel = await db.findOne({ text: msg.channel.id });
 			if (!channel) return m.edit(`${Emojis.x} This is not a private session!`);
 			if (channel.modMode === true) m.edit(`${Emojis.x} The session is already in **MOD MODE**.`);
 

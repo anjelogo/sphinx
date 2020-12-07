@@ -2,7 +2,7 @@ const { fetch, search } = require("../../Internals/handlers/profileHandler"),
 	{ colors } = require("../../Utils/config.json"),
 	Emojis = require("../../Utils/emojis.json"),
 	compatibility = require("../../Internals/modules/compatibility"),
-	{ findMember } = require("../../Utils/util");
+	{ findMember, findRole } = require("../../Utils/util");
 
 module.exports = {
 	commands: [
@@ -24,8 +24,10 @@ module.exports = {
 	execute: async (bot, msg, args) => {
 		let m = await msg.channel.createMessage(`${Emojis.loading} Getting user information...`),
 			undefinedUsers = [],
+			inCommon = [],
+			user1,
 			user2,
-			user1;
+			comp;
 			
 		if (!args[1]) user2 = msg.member;
 		else user2 = await search(bot, args[1], msg.author, m);
@@ -43,11 +45,21 @@ module.exports = {
 			u1 = findMember(msg.guild, user1.id),
 			u2 = findMember(msg.guild, user2.id);
 			
-		let rate = await compatibility(bot, u1, u2);
+		comp = await compatibility(bot, u1, u2);
+		
+		for (let i = 0; i < comp.inCommon.length; i++) {
+			let rl = findRole(msg.guild, comp.inCommon[i]);
+			if (!rl) continue;
+			inCommon.push(rl.mention);
+		}
 
 		const embed = {
 			title: `${u1d.name} and ${u2d.name}'s Compatibility`,
-			description: `${u1d.name} and ${u2d.name} are **${rate}%** compatible!`,
+			description: `${u1d.name} and ${u2d.name} are **${comp.rate}%** compatible!`,
+			fields: [{
+				name: "Things In-common",
+				value: inCommon.length ? inCommon.join("\n") : "Nothing in common!"
+			}],
 			color: colors.winered
 		};
 

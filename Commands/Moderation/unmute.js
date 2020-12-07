@@ -1,6 +1,7 @@
 const log = require("../../Internals/handlers/log"),
 	Emojis = require("../../Utils/emojis.json"),
-	{ colors, roles, name } = require("../../Utils/config.json"),
+	Roles = require("../../Utils/roles.json"),
+	{ colors, name } = require("../../Utils/config.json"),
 	{ search } = require("../../Internals/handlers/profileHandler"),
 	{ findMember, sendWarning } = require("../../Utils/util");
 
@@ -55,7 +56,7 @@ module.exports = {
 					color: colors.resolved
 				}
 			});
-			if (member.roles.includes(roles.muted)) msg.guild.removeMemberRole(user.id, roles.muted);
+			if (member.roles.includes(Roles.util.muted)) msg.guild.removeMemberRole(user.id, Roles.util.muted);
 			await log.resolve(bot, caseNum, reason, msg.member);
 		} catch (e) {
 			m.edit(`${Emojis.x} An error occurred.`);
