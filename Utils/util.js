@@ -15,6 +15,41 @@ module.exports = {
 		return true;
 	},
 
+	async sentInvite(msg) {
+		let links = await this.getLinks(msg.content),
+			inviteRegExp = /\b(?:https?:(?:\/\/)?)?(?:www\.)?discord(?:app)?\.(?:com\/invite|gg)\/\S{1,16}\b/;
+
+		if (links) {
+			for (let i = 0; i < links.length; i++) {
+				let link = links[i];
+				if (link.match(inviteRegExp)) 
+					return true;
+			}
+		} else if (msg.content.match(inviteRegExp)) return true;
+		return false;
+	},
+
+	async getLinks(content) {
+		const tracer = require("unshort-tracer"),
+			linkRegExp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/ig,
+			matches = content.match(linkRegExp);
+
+		if (matches) {
+			let realLinks = [];
+			for (let i = 0; i < matches.length; i++) {
+				let match = matches[i];
+				try {
+					let redirects = await tracer(match);
+					realLinks.push(redirects[redirects.length - 1]);
+				} catch (e) {
+					continue;
+				}
+			}
+			return realLinks.length ? realLinks : null;
+		} else
+			return null;
+	},
+
 	createHelpEmbed (cmd, content = null) {
 		let usage,
 			argStrings = [],

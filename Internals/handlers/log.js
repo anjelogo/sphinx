@@ -1,5 +1,6 @@
-const { channels, colors, guildID } = require("../../Utils/config.json"),
+const { channels, colors, guildID, name } = require("../../Utils/config.json"),
 	Profile = require("../../Internals/handlers/profileHandler"),
+	Utils = require("../../Utils/util"),
 	Roles = require("../../Utils/roles.json");
 
 module.exports = {
@@ -180,5 +181,33 @@ module.exports = {
 			
 			return new Promise(r => r(Case));
 		}
-	}
+	},
+
+	async automod (bot, msg) {
+		let reason;
+
+		if (await Utils.sentInvite(msg)) {
+			await msg.delete();
+
+			reason = "**[AUTOMOD]** Invite Link Sent.";
+			msg.author.createMessage({
+				embed: {
+					title: "You have been warned",
+					description: `You have been warned in ${name}.`,
+					fields: [
+						{
+							name: "Moderator",
+							value: bot.user.tag
+						}, {
+							name: "Reason",
+							value: "**[AUTOMOD]** Do not send invite links!"
+						}
+					],
+					color: colors.warn
+				}
+			});
+
+			this.add(bot, msg.author, bot.user, "warn", null, reason);
+		}
+	},
 };
