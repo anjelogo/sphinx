@@ -5,7 +5,8 @@ const log = require("../../Internals/handlers/log"),
 module.exports = {
 	commands: [
 		"reason",
-		"editcase"
+		"editcase",
+		"ec"
 	],
 	example: "reason 15 Get rekt lol",
 	description: "Edit a case reason",

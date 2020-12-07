@@ -6,7 +6,10 @@ const log = require("../../Internals/handlers/log"),
 	{ search } = require("../../Internals/handlers/profileHandler");
 
 module.exports = {
-	commands: ["mute"],
+	commands: [
+		"mute",
+		"m"
+	],
 	example: "mute abdoul",
 	description: "Mute a user",
 	args: [

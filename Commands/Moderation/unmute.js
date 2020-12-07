@@ -6,7 +6,10 @@ const log = require("../../Internals/handlers/log"),
 	{ findMember, sendWarning } = require("../../Utils/util");
 
 module.exports = {
-	commands: ["unmute"],
+	commands: [
+		"unmute",
+		"um"
+	],
 	example: "unmute abdoul I want to hear your crying again",
 	description: "Unmute a user that's been muted",
 	args: [

@@ -5,7 +5,10 @@ const log = require("../../Internals/handlers/log"),
 	Profile = require("../../Internals/handlers/profileHandler");
 
 module.exports = {
-	commands: ["kick"],
+	commands: [
+		"kick",
+		"k"
+	],
 	example: "kick abdoul Get Rekt",
 	description: "kick a user",
 	args: [

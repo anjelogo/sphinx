@@ -3,7 +3,10 @@ const log = require("../../Internals/handlers/log"),
 	{ sendWarning } = require("../../Utils/util");
 
 module.exports = {
-	commands: ["resolve"],
+	commands: [
+		"resolve",
+		"re"
+	],
 	example: "resolve 15 My mistake",
 	description: "Resolve cases (Warn only)",
 	args: [

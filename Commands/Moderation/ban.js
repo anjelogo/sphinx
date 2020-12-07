@@ -5,7 +5,10 @@ const log = require("../../Internals/handlers/log"),
 	Profile = require("../../Internals/handlers/profileHandler");
 
 module.exports = {
-	commands: ["ban"],
+	commands: [
+		"ban",
+		"b"
+	],
 	example: "ban abdoul",
 	description: "Ban a user",
 	args: [

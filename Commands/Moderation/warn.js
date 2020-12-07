@@ -5,7 +5,10 @@ const log = require("../../Internals/handlers/log"),
 	{ sendWarning, findMember } = require("../../Utils/util");
 
 module.exports = {
-	commands: ["warn"],
+	commands: [
+		"warn",
+		"wn"
+	],
 	example: "warn abdoul Get rekt lol",
 	description: "Warn a user",
 	args: [

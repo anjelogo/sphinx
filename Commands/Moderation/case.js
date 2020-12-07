@@ -4,7 +4,10 @@ const log = require("../../Internals/handlers/log"),
 	{ search } = require("../../Internals/handlers/profileHandler");
 
 module.exports = {
-	commands: ["case"],
+	commands: [
+		"case",
+		"c"
+	],
 	example: "case 15",
 	description: "Get information on a case",
 	args: [

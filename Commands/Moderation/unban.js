@@ -4,7 +4,10 @@ const log = require("../../Internals/handlers/log"),
 	{ search } = require("../../Internals/handlers/profileHandler");
 
 module.exports = {
-	commands: ["unban"],
+	commands: [
+		"unban",
+		"ub"
+	],
 	example: "unban abdoul I want to hear your crying again",
 	description: "Unban a user that's been banned",
 	args: [

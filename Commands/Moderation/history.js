@@ -6,7 +6,8 @@ const log = require("../../Internals/handlers/log"),
 module.exports = {
 	commands: [
 		"history",
-		"record"
+		"record",
+		"hs"
 	],
 	example: "history abdoul",
 	description: "Get the history of a user",
@@ -24,15 +25,15 @@ module.exports = {
 
 		if (!user) return m.edit(`${Emojis.x} I could not find a user called \`${args[0]}\``);
 
-		Cases = await log.get(bot, "user", user);
-		if (!Cases || !Cases.length) return m.edit(`${Emojis.x} Couldn't find any punishment history for ${user.username}`);
-
 		m.edit(`${Emojis.loading} Grabbing punishment history...`);
+		Cases = await log.get(bot, "user", user);
 
-		Cases.forEach(c => {
-			let string = `\`Case #${c.caseNum} [${c.action.substring(0, 1).toUpperCase()}]\``;
-			arr.push(string);
-		});
+		if (Cases && Cases.length) {
+			Cases.forEach(c => {
+				let string = `\`Case #${c.caseNum} [${c.action.substring(0, 1).toUpperCase()}]\``;
+				arr.push(string);
+			});
+		}
 
 		let embed = {
 			title: `History for ${user.username}`,
@@ -43,7 +44,7 @@ module.exports = {
 			fields: [
 				{
 					name: `Cases: [${arr.length}]`,
-					value: arr.join(", "),
+					value: arr.length ? arr.join(", ") : "No punishments.",
 				}
 			],
 			color: colors.embedColor,
