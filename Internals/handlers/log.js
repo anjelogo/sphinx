@@ -184,12 +184,13 @@ module.exports = {
 	},
 
 	async automod (bot, msg) {
-		let reason;
+		let history = await this.get(bot, "user", msg.member),
+			data = bot.userMap.get(msg.author.id),
+			reason;
 
-		if (await Utils.sentInvite(msg)) {
-			await msg.delete();
+		if (history.filter(c => c.action === "mute").length) return;
 
-			reason = "**[AUTOMOD]** Invite Link Sent.";
+		const warn = (reason, msgReason) => {
 			msg.author.createMessage({
 				embed: {
 					title: "You have been warned",
@@ -200,7 +201,7 @@ module.exports = {
 							value: bot.user.tag
 						}, {
 							name: "Reason",
-							value: "**[AUTOMOD]** Do not send invite links!"
+							value: `**[AUTOMOD]** ${msgReason}`
 						}
 					],
 					color: colors.warn
@@ -208,6 +209,44 @@ module.exports = {
 			});
 
 			this.add(bot, msg.author, bot.user, "warn", null, reason);
+		};
+
+		if (await Utils.sentInvite(msg)) {
+			reason = `**[AUTOMOD]** Invite Link Sent.\n||${msg.content}||`;
+			await msg.delete();
+			warn(reason, "Don't post invite links.");
 		}
+
+		if (data && data.lastMsg.content.toLowerCase() === msg.content.toLowerCase()) {
+			let { lastMsg, timer } = data,
+				difference = msg.timestamp - lastMsg.timestamp,
+				msgCount = data.msgCount;
+
+			if (difference > 2500) {
+				clearTimeout(timer);
+				data.msgCount = 1;
+				data.lastMsg = msg;
+				data.time = setTimeout(() => bot.userMap.delete(msg.author.id), 5000);
+
+				bot.userMap.set(msg.author.id, data);
+			} else {
+				msgCount++;
+				if (msgCount > 5) {
+					msg.delete();
+					warn("**[AUTOMOD]** Spamming", "Stop spamming!");
+				}
+				else {
+					data.msgCount = msgCount;
+					bot.userMap.set(msg.author.id, data);
+				}
+			}
+		} else {
+			bot.userMap.set(msg.author.id, {
+				msgCount: 1,
+				lastMsg: msg,
+				timer: setTimeout(() => bot.userMap.delete(msg.author.id), 5000)
+			});
+		}
+
 	},
 };

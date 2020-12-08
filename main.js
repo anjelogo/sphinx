@@ -9,6 +9,7 @@ const bot = new Eris(require("./Utils/auth.json").token, {
 	intents: 16259
 });
 
+bot.userMap = new Map();
 bot.commands = [];
 bot.m = m;
 
