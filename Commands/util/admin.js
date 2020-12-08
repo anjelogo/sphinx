@@ -194,7 +194,8 @@ module.exports = {
 		case "reactionrole": {
 			let m = await msg.channel.createMessage(`${Emojis.loading} Waiting...`),
 				db = bot.m.get("reactionroles"),
-				title = "Reaction Roles",
+				description,
+				title,
 				listCompleted = false,
 				invalid = [],
 				roles = [],
@@ -214,12 +215,27 @@ module.exports = {
 			m.edit({ embed });
 
 			let resTitle = await msg.channel.awaitMessages(m => m.author.id === msg.author.id, { time: 35000, maxMatches: 1 });
-			if (!resTitle.length || /cancel/.test(resTitle[0].content.toLowerCase())) return m.edit({ content: `${Emojis.x} Cancelled.`, embed: null });
+			if (!resTitle.length || /cancel/i.test(resTitle[0].content)) return m.edit({ content: `${Emojis.x} Cancelled.`, embed: null });
 		
 			resTitle[0].content.toLowerCase() !== "none" ? title = resTitle[0].content : title = "Reaction Roles";
 			embed.fields[0].value = `Title: ${title}`;
 
 			resTitle[0].delete();
+
+			embed.fields.push({
+				name: "Description",
+				value: "Type `none` to make a blank description"
+			});
+
+			m.edit({ embed });
+
+			let resDesc = await msg.channel.awaitMessages(m => m.author.id === msg.author.id, { time: 35000, maxMatches: 1 });
+			if (!resDesc.length || /cancel/i.test(resDesc[0].content)) return m.edit({ content: `${Emojis.x} Cancelled.`, embed: null });
+		
+			resDesc[0].content.toLowerCase() !== "none" ? title = resDesc[0].content : description = null;
+			description ? embed.fields[1].value = `Description: \`${description}\`` : embed.fields[1].value = "Black Description";
+
+			resDesc[0].delete();
 
 			embed.fields.push({
 				name: "Reaction Roles",
@@ -238,9 +254,10 @@ module.exports = {
 					let role = findRole(msg.guild, r.role);
 					arr.push(`${r.reaction} - ${role.mention}`);
 				});
+
 				roles.length ? str = arr.join("\n") : str = "No Roles so far.";
 
-				embed.fields[1] = {
+				embed.fields[2] = {
 					name: "Reaction Roles",
 					value: `Type \`done\` when you have sufficient roles.\n\n${str}\n\n**What reaction do you want to add?**`
 				};
@@ -248,7 +265,7 @@ module.exports = {
 				m.edit({ embed });
 
 				resReaction = await msg.channel.awaitMessages(m => m.author.id === msg.author.id, { maxMatches: 1 });
-				if (!resReaction.length || /cancel/.test(resReaction[0].content.toLowerCase())) return m.edit({ content: `${Emojis.x} Cancelled.`, embed: null });
+				if (!resReaction.length || /cancel/i.test(resReaction[0].content)) return m.edit({ content: `${Emojis.x} Cancelled.`, embed: null });
 				if (resReaction[0].content === "done") {
 					listCompleted === true;
 					resReaction[0].delete();
@@ -257,7 +274,7 @@ module.exports = {
 
 				resReaction[0].delete();
 
-				embed.fields[1] = {
+				embed.fields[2] = {
 					name: "Reaction Roles",
 					value: `Type \`done\` when you have sufficient roles.\n\n${str}\n\n**What role do you want to add to ${resReaction[0].content}?**`
 				};
@@ -265,23 +282,24 @@ module.exports = {
 				m.edit({ embed });
 
 				resRole = await msg.channel.awaitMessages(m => m.author.id === msg.author.id, { maxMatches: 1 });
-				if (!resRole.length || /cancel/.test(resRole[0].content.toLowerCase())) return m.edit({ content: `${Emojis.x} Cancelled.`, embed: null });
+				if (!resRole.length || /cancel/i.test(resRole[0].content)) return m.edit({ content: `${Emojis.x} Cancelled.`, embed: null });
 
 				role = findRole(msg.guild, resRole[0].content);
 				if (!role) {
-					msg.channel.createMessage(`${Emojis.x} That's not a valid role!`);
+					let ms = msg.channel.createMessage(`${Emojis.x} That's not a valid role!`);
 					resRole[0].delete();
+					setTimeout(() => ms.delete(), 3500);
 					continue;
 				}
 				roles.push({ reaction, role: role.id });
 				resRole[0].delete();
 			}
 
-			if (!roles.length) return m.edit(`${Emojis.x} No roles were added.`);
+			if (!roles.length) return m.edit({ content: `${Emojis.x} No roles were added.`, embed: null });
 
 			embed = {
 				title,
-				description: "Click on the reactions to get your roles.\n\n",
+				description: description ? `${description}\n\n` : "\n\n",
 				color: Config.colors.winered
 			};
 
@@ -304,7 +322,10 @@ module.exports = {
 				}
 			}
 			
-			if (invalid.length) msg.channel.createMessage(`${Emojis.warning.red} The reaction(s) \`${invalid.join("`, `")}\` are invalid. They were not added to the reaction list.`);
+			if (invalid.length) {
+				let ms = await msg.channel.createMessage(`${Emojis.warning.red} The reaction(s) \`${invalid.join("`, `")}\` are invalid. They were not added to the reaction list.`);
+				setTimeout(() => ms.delete(), 3500);
+			}
 
 			const obj = {
 				messageID: m.id,
