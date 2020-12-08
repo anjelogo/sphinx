@@ -1,6 +1,7 @@
 const Config = require("./config.json"),
 	Emojis = require("../Utils/emojis.json"),
 	path = require("path"),
+	Roles = require("../Utils/roles.json"),
 	{ inspect } = require("util");
 
 module.exports = {
@@ -181,6 +182,15 @@ module.exports = {
 
 	isDeveloper (user) {
 		return (Config.developers.includes(user.id));
+	},
+
+	isStaff (user) {
+		let roles = user.roles;
+
+		if (roles.includes(Roles.staff.mod) || roles.includes(Roles.staff.admin) || Config.developers.includes(user.id))
+			return true;
+		else
+			return false;
 	},
 
 	calculate_age (dob) {
