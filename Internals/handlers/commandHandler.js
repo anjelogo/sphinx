@@ -6,7 +6,7 @@ const { defaultPrefix, colors } = require("../../Utils/config.json"),
 module.exports = async (bot, msg) => {
 	if (msg.author.bot) return;
 
-	await Log.automod(bot, msg);
+	if (msg.channel.type === 0 && !Utils.isStaff(msg.member)) await Log.automod(bot, msg);
 
 	let mentionPrefix = msg.content.match(new RegExp(`<@!?${bot.user.id}> `, "g")),
 		prefix = defaultPrefix,

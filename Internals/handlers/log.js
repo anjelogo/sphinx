@@ -80,7 +80,7 @@ module.exports = {
 			user.createMessage({
 				embed: {
 					title: "You have been muted",
-					description: "You have been muted in sphinx.",
+					description: `You have been muted in ${name}.`,
 					fields: [
 						{
 							name: "Moderator",
@@ -101,7 +101,7 @@ module.exports = {
 			user.createMessage({
 				embed: {
 					title: "You have been banned",
-					description: "You have been banned from sphinx.",
+					description: `You have been banned from ${name}.`,
 					fields: [
 						{
 							name: "Moderator",
@@ -188,7 +188,7 @@ module.exports = {
 			data = bot.userMap.get(msg.author.id),
 			reason;
 
-		if (history.filter(c => c.action === "mute").length) return;
+		if (history && history.filter(c => c.action === "mute").length) return;
 
 		const warn = (reason, msgReason) => {
 			msg.author.createMessage({
@@ -231,7 +231,7 @@ module.exports = {
 				bot.userMap.set(msg.author.id, data);
 			} else {
 				msgCount++;
-				if (msgCount > 5) {
+				if (msgCount === 5) {
 					msg.delete();
 					warn("**[AUTOMOD]** Spamming", "Stop spamming!");
 				}
