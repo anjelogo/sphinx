@@ -2,7 +2,7 @@ const log = require("../../Internals/handlers/log"),
 	Emojis = require("../../Utils/emojis.json"),
 	Roles = require("../../Utils/roles.json"),
 	{ colors, name } = require("../../Utils/config.json"),
-	{ search } = require("../../Internals/handlers/profileHandler"),
+	Profile = require("../../Internals/handlers/profileHandler"),
 	{ findMember, sendWarning } = require("../../Utils/util");
 
 module.exports = {
@@ -24,7 +24,7 @@ module.exports = {
 	],
 	execute: async (bot, msg, args) => {
 		let m = await msg.channel.createMessage(`${Emojis.loading} Grabbing user information...`),
-			user = await search(bot, args[0], msg.author, m),
+			user = await Profile.search(bot, args[0], msg.author, m),
 			reason = args[1] ? args.slice(1).join(" ") : null,
 			warning,
 			caseNum,

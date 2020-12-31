@@ -1,6 +1,6 @@
-const { colors } = require("../../../Utils/config.json");
-const { fetch } = require("../../handlers/profileHandler");
-const Wizard = require("./wizard");
+const { colors } = require("../../../Utils/config.json"),
+	{ fetch } = require("../../handlers/profileHandler"),
+	Wizard = require("./wizard");
 
 module.exports = async (bot, user, emoji) => {
 	if (!["♂️", "♀️", "❌"].includes(emoji.name)) return;
@@ -58,5 +58,5 @@ module.exports = async (bot, user, emoji) => {
 	m.addReaction("🚫");
 	m.addReaction("❌");
 
-	return await Wizard.save(bot, user, obj, 3, m.id);
+	return await Wizard.save(bot, user, obj, 3, m.id, "create");
 };

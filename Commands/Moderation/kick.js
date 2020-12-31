@@ -1,6 +1,5 @@
 const log = require("../../Internals/handlers/log"),
 	Emojis = require("../../Utils/emojis.json"),
-	{ colors, name } = require("../../Utils/config.json"),
 	{ findMember, sendWarning } = require("../../Utils/util"),
 	Profile = require("../../Internals/handlers/profileHandler");
 
@@ -40,27 +39,7 @@ module.exports = {
 			if (!warning) return m.edit(`${Emojis.x} User cancelled operation.`);
 			m.edit(`${Emojis.loading} Kicking user...`);
 
-			user.createMessage({
-				embed: {
-					title: "You have been kicked",
-					description: `You have been kicked from ${name}.`,
-					fields: [
-						{
-							name: "Moderator",
-							value: msg.author.tag
-						}, {
-							name: "Reason",
-							value: reason ? reason : "No reason provided."
-						}
-					],
-					color: colors.kick
-				}
-			});
-			setTimeout(async () => {
-				await msg.guild.kickMember(member.id, reason);
-				await log.add(bot, member, msg.member, "kick", null, reason);
-				await Profile.archive(bot, user);
-			}, 1000);
+			await log.add(bot, member, msg.member, "kick", null, reason);
 		} catch (e) {
 			m.edit(`${Emojis.x} An error occurred.`);
 			throw new Error(e);

@@ -1,9 +1,12 @@
-const { colors } = require("../../../Utils/config.json");
-const { fetch, edit } = require("../../handlers/profileHandler");
-const Wizard = require("./wizard");
-const stage = require("./stage5");
+const { colors } = require("../../../Utils/config.json"),
+	{ fetch, edit } = require("../../handlers/profileHandler"),
+	Wizard = require("./wizard"),
+	stage = require("./stage5"),
+	flag = require("../flag"),
+	{ findUser } = require("../../../Utils/util");
 
 module.exports = async (bot, user, emoji) => {
+	user = findUser(bot, user.id);
 	if (!["🧍", "🧑‍🤝‍🧑", "👀", "❌"].includes(emoji.name)) return;
 
 	let data = await fetch(bot, user);
@@ -60,8 +63,18 @@ module.exports = async (bot, user, emoji) => {
 		m.delete();
 		m = await channel.createMessage({ embed: { title: "Creating your profile! Sit tight!", color: colors.embedColor } });
 		try {
+			let isFlagged = false;
+
+			if (obj.flag) {
+				isFlagged = true;
+				delete obj.flag;
+			}
+
 			await edit(bot, user, obj);
-			Wizard.save(bot, user, obj, 5, m.id);
+
+			if (isFlagged) await flag.create(bot, user, "**[AUTOMOD]** User is underage.", "ban");
+
+			Wizard.save(bot, user, obj, 5, m.id, "create");
 		} catch(e) {
 			m.edit({ embed: { title: "There was an error while creating your profile", color: colors.red} });
 			throw new Error(e);

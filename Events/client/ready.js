@@ -21,6 +21,7 @@ module.exports = (bot) => {
 			guild = bot.guilds.get(guildID);
 
 		for (let Session of wizards) {
+			if (Session.type === "flag") continue;
 			let member = findMember(guild, Session.userID);
 	
 			await Wizards.findOneAndDelete({ userID: Session.userID });

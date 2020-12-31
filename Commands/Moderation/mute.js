@@ -1,7 +1,6 @@
 const log = require("../../Internals/handlers/log"),
 	Emojis = require("../../Utils/emojis.json"),
 	Roles = require("../../Utils/roles.json"),
-	{ colors, name } = require("../../Utils/config.json"),
 	{ findMember, sendWarning } = require("../../Utils/util"),
 	{ search } = require("../../Internals/handlers/profileHandler");
 
@@ -46,24 +45,6 @@ module.exports = {
 			if (!reason.length || /cancel/gi.test(reason[0].content)) return m.edit(`${Emojis.warning.red} Cancelled.`);
 			m.edit(`${Emojis.loading} Muting user...`);
 
-			user.createMessage({
-				embed: {
-					title: "You have been muted",
-					description: `You have been muted in ${name}.`,
-					fields: [
-						{
-							name: "Moderator",
-							value: msg.author.tag
-						}, {
-							name: "Reason",
-							value: reason[0].content
-						}
-					],
-					color: colors.mute
-				}
-			});
-			await msg.guild.addMemberRole(member.id, Roles.util.muted);
-			time = args[1] && !isNaN(args[1].slice(0, -1)) ? time = args[1] : time = null;
 			await log.add(bot, member, msg.member, "mute", time, reason[0].content);
 		} catch (e) {
 			m.edit(`${Emojis.x} An error occurred.`);

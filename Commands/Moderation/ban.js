@@ -1,6 +1,5 @@
 const log = require("../../Internals/handlers/log"),
 	Emojis = require("../../Utils/emojis.json"),
-	{ colors, name } = require("../../Utils/config.json"),
 	{ findMember, sendWarning } = require("../../Utils/util"),
 	Profile = require("../../Internals/handlers/profileHandler");
 
@@ -45,28 +44,7 @@ module.exports = {
 			if (!reason.length || /cancel/gi.test(reason[0].content)) return m.edit(`${Emojis.warning.red} Cancelled.`);
 			m.edit(`${Emojis.loading} Banning user...`);
 
-			user.createMessage({
-				embed: {
-					title: "You have been banned",
-					description: `You have been banned from ${name}.`,
-					fields: [
-						{
-							name: "Moderator",
-							value: msg.author.tag
-						}, {
-							name: "Reason",
-							value: reason[0].content
-						}
-					],
-					color: colors.ban
-				}
-			});
-			setTimeout(async () => {
-				await msg.guild.banMember(member.id, 0, reason[0].content);
-				time = args[1] && !isNaN(args[1].slice(0, -1)) ? time = args[1] : time = null;
-				await log.add(bot, member, msg.member, "ban", time, reason[0].content);
-				await Profile.archive(bot, user);
-			}, 1000);
+			await log.add(bot, member, msg.member, "ban", time, reason[0].content);
 		} catch (e) {
 			m.edit(`${Emojis.x} An error occurred.`);
 			throw new Error(e);

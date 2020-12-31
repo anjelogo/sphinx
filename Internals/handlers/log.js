@@ -50,12 +50,65 @@ module.exports = {
 		};
 
 		await db.insert(obj);
+		await this.punish(bot, user, moderator, action, reason, caseNum, time);
 		return await this.auto(bot, user);
+	},
+
+	async punish (bot, user, moderator, punishment, reason, caseNum, time) {
+		const guild = bot.guilds.get(guildID),
+			action = {
+				warn: "warned",
+				mute: "muted",
+				kick: "kicked",
+				ban: "banned"
+			},
+			string = reason ? `${reason}${time ? ` | ${time}` : ""}` : `No reason provided${time ? ` | ${time}` : ""}`,
+			embed = {
+				title: `You have been ${action[punishment]}`,
+				description: `You have been ${action[punishment]} in ${name}`,
+				fields: [
+					{
+						name: "Moderator",
+						value: moderator.tag
+					}, {
+						name: "Reason",
+						value: string
+					}
+				],
+				color: colors[punishment],
+				footer: {
+					text: `Case #${caseNum}`
+				}
+			};
+
+		try {
+			switch (punishment) {
+			case "warn": 
+				await user.createMessage({ embed });
+				break;
+			case "kick":
+				await user.createMessage({ embed });
+				guild.kickMember(user.id, reason);
+				break;
+			case "mute":
+				await user.createMessage({ embed });
+				await guild.addMemberRole(user.id, Roles.util.muted);
+				break;
+			case "ban":
+				await user.createMessage({ embed });
+				await guild.banMember(user.id, 0, string);
+				await Profile.archive(bot, user);
+				break;
+			}
+
+		} catch (e) {
+			throw new Error(e);
+		}
+
 	},
 
 	async auto (bot, user) {
 		let history = await this.get(bot, "user", user),
-			guild = bot.guilds.get(guildID),
 			infractions = 0,
 			punishment,
 			reason,
@@ -77,45 +130,10 @@ module.exports = {
 		switch (punishment) {
 		case "mute": 
 			if (history.filter(c => c.action === "mute").length) return;
-			user.createMessage({
-				embed: {
-					title: "You have been muted",
-					description: `You have been muted in ${name}.`,
-					fields: [
-						{
-							name: "Moderator",
-							value: user.tag
-						}, {
-							name: "Reason",
-							value: `${reason} | 7d`
-						}
-					],
-					color: colors.mute
-				}
-			});
-			await guild.addMemberRole(user.id, Roles.util.muted);
 			break;
 		case "ban": 
 			if (history.filter(c => c.action === "ban").length) return;
 			if (history.filter(c => c.action === "mute").length) await this.resolve(bot, history.filter(c => c.action === "mute")[0].caseNum, "**[AUTOMOD]** Unmuted for ban.", bot.user);
-			user.createMessage({
-				embed: {
-					title: "You have been banned",
-					description: `You have been banned from ${name}.`,
-					fields: [
-						{
-							name: "Moderator",
-							value: user.tag
-						}, {
-							name: "Reason",
-							value: `${reason} | 7d`
-						}
-					],
-					color: colors.ban
-				}
-			});
-			await guild.banMember(user.id, 0, `${reason} | 7d`);
-			await Profile.archive(bot, user);
 			break;
 		}
 

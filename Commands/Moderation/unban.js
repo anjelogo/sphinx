@@ -23,7 +23,7 @@ module.exports = {
 	execute: async (bot, msg, args) => {
 		let m = await msg.channel.createMessage(`${Emojis.loading} Grabbing user information...`),
 			reason = args[1] ? args.slice(1).join(" ") : null,
-			user = await search(bot, args[0], msg.autjor, m),
+			user = await search(bot, args[0], msg.author, m),
 			warning,
 			caseNum,
 			cases;
