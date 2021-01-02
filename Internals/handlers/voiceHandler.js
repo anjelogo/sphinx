@@ -4,8 +4,8 @@ const Config = require("../../Utils/config.json"),
 	Emojis = require("../../Utils/emojis.json");
 
 module.exports = async (bot, member, channel, bool = false) => {
-	let filter = [],
-		tempChannels = await bot.m.get("channels").find({});
+	let tempChannels = await bot.m.get("channels").find({}),
+		filter = [];
 
 	Object.values(Config.channels).forEach(c => filter.push(c));
 	member.guild.channels.filter(c => c.name.toLowerCase() === "in queue").forEach(c => filter.push(c.id));

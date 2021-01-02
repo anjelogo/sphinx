@@ -1,4 +1,5 @@
 const Config = require("./config.json"),
+	{ token } = require("./auth.json"),
 	Emojis = require("../Utils/emojis.json"),
 	path = require("path"),
 	Roles = require("../Utils/roles.json"),
@@ -16,7 +17,7 @@ module.exports = {
 		return true;
 	},
 
-	async sentInvite(msg) {
+	async sentInvite (msg) {
 		let links = await this.getLinks(msg.content),
 			inviteRegExp = /\b(?:https?:(?:\/\/)?)?(?:www\.)?discord(?:app)?\.(?:com\/invite|gg)\/\S{1,16}\b/;
 
@@ -30,7 +31,7 @@ module.exports = {
 		return false;
 	},
 
-	async getLinks(content) {
+	async getLinks (content) {
 		const tracer = require("unshort-tracer"),
 			linkRegExp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/ig,
 			matches = content.match(linkRegExp);
@@ -206,7 +207,14 @@ module.exports = {
 			.replace(/`/g, "'" + String.fromCharCode(8203))
 			.replace(/"/g, "\"" + String.fromCharCode(8203))
 			.replace(/@/g, "@" + String.fromCharCode(8203))
-			.replace(Config.token, "[REDACTED]");
+			.replace(token, "[REDACTED]");
 		return text;
 	},
+
+	format (text) {
+		if (typeof text !== "string") text = inspect(text, { depth: 0 });
+		if (text.length < 2) return text.toUpperCase();
+		else return text[0].toUpperCase() + text.substring(1).toLowerCase();
+	}
+
 };

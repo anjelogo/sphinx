@@ -1,6 +1,7 @@
 const Profile = require("../handlers/profileHandler"),
 	Wizard = require("./wizards/wizard"),
 	log =  require("../handlers/log"),
+	{ format } = require("../../Utils/util"),
 	{ guildID, channels, colors } = require("../../Utils/config.json");
 
 module.exports = {
@@ -26,7 +27,7 @@ module.exports = {
 		else if (infractions >= 3 && infractions < 9) infpunish = "mute";
 		else if (infractions >= 9) infpunish = "ban";
 
-		let string = !punishment ? infpunish[0].toLowerCase() + infpunish.substring(1) : punishment[0].toLowerCase() + punishment.substring(1),
+		let string = !punishment ? format(infpunish) : format(punishment),
 			embed = {
 				title: "Flagged User",
 				fields: [

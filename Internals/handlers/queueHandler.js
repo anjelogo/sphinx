@@ -13,7 +13,7 @@ module.exports = async (bot) => {
 		let numOfChannels = await bot.m.get("channels").count({}),
 			queued = await bot.m.get("queue").count({});
 			
-		if (numOfChannels <= maxChannelSize && busy === false && queued > 1) start();
+		if (numOfChannels <= maxChannelSize && !busy && queued > 1) start();
 
 	}, 1500);
 
@@ -62,7 +62,7 @@ module.exports = async (bot) => {
 			}
 		}
 
-		if (found === true) await createPrivate(bot, user, match);
+		if (found) await createPrivate(bot, user, match);
 		busy = false;
 	};
 };

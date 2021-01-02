@@ -1,6 +1,8 @@
 const Config = require("../../Utils/config.json"),
+	Emojis = require("../../Utils/emojis.json"),
 	{ findRole } = require("../../Utils/util"),
-	{ fetch } = require("../handlers/profileHandler");
+	{ fetch } = require("../handlers/profileHandler"),
+	deletePrivate = require("./deletePrivate");
 
 module.exports = async (bot, user1, user2) => {
 	const guild = bot.guilds.get(Config.guildID),
@@ -46,6 +48,21 @@ module.exports = async (bot, user1, user2) => {
 		};
 
 	await channels.insert(obj);
+
 	user1.edit({ channelID: voice.id });
-	user2.edit({ channelID: voice.id });
+	if (!user2.voiceState.channelID) {
+		let invite = await voice.createInvite({ maxUses: 1 }),
+			embed = {
+				title: "Private Channel Invite",
+				description: `${Emojis.friend.pending} \`${data1.name}\` invited you to a private channel!\n\n**Invite:** (Expires in 2 minutes) ||https://discord.gg/${invite.code}||`,
+				color: Config.colors.green
+			};
+
+		user2.createMessage({ embed });
+
+		setTimeout(async () => {
+			if (voice.voiceMembers.size > 1) return;
+			await deletePrivate(bot, user1, voice);
+		}, 120000);
+	} else user2.edit({ channelID: voice.id });
 };

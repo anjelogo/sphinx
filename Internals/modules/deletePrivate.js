@@ -22,9 +22,10 @@ module.exports = async (bot, member, channel) => {
 		await user1.edit({ channelID: Config.channels.matchDefault });
 		await user2.edit({ channelID: Config.channels.matchDefault });
 	} else {
-		let user = member.guild.members.get(chl.members[member.id === chl.members[0] ? 1 : 0]);
-		
-		await user.edit({ channelID: Config.channels.matchDefault });
+		let user = member.guild.members.get(chl.members[member.id === chl.members[0] ? 1 : 0]),
+			voiceMembers = voice.voiceMembers.map(m => m.id);
+
+		if (voiceMembers.includes(user.id)) await user.edit({ channelID: Config.channels.matchDefault });
 	}
 
 	await cat.channels.forEach(c => {

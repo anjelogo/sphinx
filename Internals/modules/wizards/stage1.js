@@ -1,5 +1,5 @@
 const { colors } = require("../../../Utils/config.json"),
-	{ calculate_age, clean } = require("../../../Utils/util"),
+	{ calculate_age, clean, format } = require("../../../Utils/util"),
 	Emojis = require("../../../Utils/emojis.json"),
 	Wizard = require("./wizard");
 
@@ -43,7 +43,7 @@ module.exports = async (bot, user, msg) => {
 		dob = Date.parse(birthdate[0].content),
 		age = calculate_age(dob);
 
-	if (!birthdate.length || /cancel/g.test(birthdate[0].content)) {
+	if (!birthdate.length || /cancel/gi.test(birthdate[0].content)) {
 		await Wizard.remove(bot, user);
 		return m.edit({ embed: cancelled });
 	} else if (!regex.test(birthdate[0].content)) {
@@ -67,12 +67,12 @@ module.exports = async (bot, user, msg) => {
 	await m.edit({ embed });
 	
 	let firstname = await channel.awaitMessages(m => m.author.id === user.id, { maxMatches: 1, time: 30000});
-	if (!firstname.length || /cancel/g.test(birthdate[0].content)) {
+	if (!firstname.length || /cancel/gi.test(firstname[0].content)) {
 		await Wizard.remove(bot, user);
 		return m.edit({ embed: cancelled });
 	}
 
-	obj.name.first = firstname[0].content;
+	obj.name.first = format(firstname[0].content);
 	embed.fields[1] = {
 		name: "What is your last name?",
 		value: `**First Name:** ${firstname[0].content}\n\n**Type it in chat.**`
@@ -81,7 +81,7 @@ module.exports = async (bot, user, msg) => {
 	await m.edit({ embed });
 
 	let lastname = await channel.awaitMessages(m => m.author.id === user.id, { maxMatches: 1, time: 30000});
-	if (!lastname.length || lastname[0].content.toLowerCase() === "cancel") {
+	if (!lastname.length || /cancel/gi.test(lastname[0].content)) {
 		await Wizard.remove(bot, user);
 		return m.edit({ embed: cancelled });
 	}
@@ -100,7 +100,7 @@ module.exports = async (bot, user, msg) => {
 	await m.edit({ embed });
 
 	let description = await channel.awaitMessages(m => m.author.id === user.id, { maxMatches: 1, time: 60000});
-	if (!description.length || /cancel/g.test(birthdate[0].content)) {
+	if (!description.length || /cancel/gi.test(birthdate[0].content)) {
 		await Wizard.remove(bot, user);
 		return m.edit({ embed: cancelled });
 	}
@@ -119,7 +119,7 @@ module.exports = async (bot, user, msg) => {
 	await m.edit({ embed });
 
 	let lookingfor = await channel.awaitMessages(m => m.author.id === user.id, { maxMatches: 1, time: 60000});
-	if (!lookingfor.length || lookingfor[0].content.toLowerCase() === "cancel") {
+	if (!lookingfor.length || /cancel/gi.test(lookingfor[0].content)) {
 		await Wizard.remove(bot, user);
 		return m.edit({ embed: cancelled });
 	}
@@ -138,7 +138,7 @@ module.exports = async (bot, user, msg) => {
 	await m.edit({ embed });
 
 	let hobbies = await channel.awaitMessages(m => m.author.id === user.id, { maxMatches: 1, time: 60000});
-	if (!hobbies.length || /(cancel|none)/i.test(hobbies[0].content)) {
+	if (!hobbies.length || /(cancel|none)/gi.test(hobbies[0].content)) {
 		await Wizard.remove(bot, user);
 		return m.edit({ embed: cancelled });
 	}

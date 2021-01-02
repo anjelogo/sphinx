@@ -78,7 +78,13 @@ module.exports = {
 				"single": "🧍 **Single**",
 				"taken": "🧑‍🤝‍🧑 **Taken**",
 				"looking": "👀 **Looking**"
-			};
+			},
+			getFollowing = async () => {
+				let following = await bot.m.get("profiles").aggregate([{ $match: { "profile.followers": { $eq: user.id } } }]);
+				if (!following.length) return 0;
+				else return following.length;
+			},
+			following = await getFollowing();
 
 		let obj = {
 			author: {
@@ -104,6 +110,14 @@ module.exports = {
 				}, {
 					name: "Age",
 					value: calculate_age(pr.dob),
+					inline: true
+				}, {
+					name: "Followers",
+					value: `${Emojis.friend.accepted} **${pr.followers ? pr.followers.length : 0}** followers`,
+					inline: true
+				}, {
+					name: "Following",
+					value: `${Emojis.friend.accepted} **${following}** following`,
 					inline: true
 				}, {
 					name: "About me",
@@ -238,7 +252,7 @@ module.exports = {
 		}
 
 		if (!users.length) return undefined;
-		if (users.length > 1) return await multiple();
+		else if (users.length > 1) return await multiple();
 		else {
 			await m.edit(`${Emojis.loading} Loading user...`);
 			return users[0];

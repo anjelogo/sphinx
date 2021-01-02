@@ -12,7 +12,7 @@ module.exports = {
 			caseNum = cases.length > 0 ? cases[cases.length - 1].caseNum + 1 : 1,
 			string = reason ? `${reason}${time ? ` | ${time}` : ""}` : `Moderator please do !reason ${caseNum}${time ? ` | ${time}` : ""}`,
 			embed = {
-				title: `${action[0].toUpperCase() + action.substring(1)} | Case #${caseNum}`,
+				title: `${Utils.format(action)} | Case #${caseNum}`,
 				thumbnail: {
 					url: user.avatarURL
 				},
@@ -54,7 +54,7 @@ module.exports = {
 		return await this.auto(bot, user);
 	},
 
-	async punish (bot, user, moderator, punishment, reason, caseNum, time) {
+	async punish (bot, user, moderator, punishment, reason, caseNum, time){
 		const guild = bot.guilds.get(guildID),
 			action = {
 				warn: "warned",
@@ -88,7 +88,8 @@ module.exports = {
 				break;
 			case "kick":
 				await user.createMessage({ embed });
-				guild.kickMember(user.id, reason);
+				await Profile.archive(bot, user);
+				await guild.kickMember(user.id, reason);
 				break;
 			case "mute":
 				await user.createMessage({ embed });
