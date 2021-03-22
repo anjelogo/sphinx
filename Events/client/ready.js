@@ -1,8 +1,9 @@
 const queueHandler = require("../../Internals/handlers/queueHandler"),
 	log = require("../../Internals/handlers/log"),
-	{ guildID, colors, roles } = require("../../Utils/config.json"),
-	{ findMember } = require("../../Utils/util"),
-	Emojis = require("../../Utils/emojis.json");
+	{ guildID, colors } = require("../../Utils/config.json"),
+	{ findMember, findGuild } = require("../../Utils/util"),
+	Emojis = require("../../Utils/emojis.json"),
+	deletePrivate = require("../../Internals/modules/deletePrivate");
 
 module.exports = (bot) => {
 	bot.on("ready", async () => {
@@ -12,13 +13,13 @@ module.exports = (bot) => {
 			type: 3
 		});
 
-		queueHandler(bot);
+		await queueHandler(bot);
 		
 		let Wizards = await bot.m.get("wizards"),
 			wizards = await Wizards.find({}),
 			Queue = await bot.m.get("queue"),
 			queue = await Queue.find({}),
-			guild = bot.guilds.get(guildID);
+			guild = findGuild(bot, guildID);
 
 		for (let Session of wizards) {
 			if (Session.type === "flag") continue;
@@ -42,19 +43,36 @@ module.exports = (bot) => {
 			for (let Case of cases) {
 				if (Case.time === 0 || Case.time >= Date.now()) continue;
 
-				const guild = bot.guilds.get(guildID),
-					member = Case.action === "mute" ? findMember(guild, Case.userID) : null,
-					reason = "**[AUTO-MOD]** Time's up!";
+				const reason = "**[AUTO-MOD]** Time's up!";
 
-				if (Case.action === "mute") {
-					if (member.roles.includes(roles.muted)) guild.removeMemberRole(Case.userID, roles.muted, reason);
+				if (Case.action === "mute")
 					await log.resolve(bot, Case.caseNum, reason, bot.user);
-				} else if (Case.action === "ban") {
-					await guild.unbanMember(Case.userID, reason);
+				else if (Case.action === "ban")
 					await log.resolve(bot, Case.caseNum, reason, bot.user);
-				}
 
 			}
+			let channels = await bot.m.get("channels").find({});
+			for (let channelData of channels) {
+				if (Date.now() - channelData.createdAt <= 120000) continue;
+
+				const channel = guild.channels.get(channelData.voice);
+				if (!channel || channel.voiceMembers.size > 1) continue;
+
+				let member = channel.voiceMembers.map(m => m)[0];
+
+				await deletePrivate(bot, member, channel);
+				if (member) {
+					member.createMessage({
+						embed: {
+							title: "Private Session Ended",
+							color: colors.red,
+							description: "The session has ended because nobody joined. Try again later."
+						}
+					});
+				}
+				
+			}
+
 		}, 2500);
 
 		setInterval(async () => {

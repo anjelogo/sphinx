@@ -1,5 +1,5 @@
 const { colors, guildID, developers } = require("../../Utils/config.json"),
-	{ findUser, findMember, calculate_age, findBanned } = require("../../Utils/util"),
+	{ findUser, findMember, calculate_age, findBanned, findGuild } = require("../../Utils/util"),
 	Emojis = require("../../Utils/emojis.json");
 
 module.exports = {
@@ -16,6 +16,7 @@ module.exports = {
 				profile: data.profile,
 				name: `${data.profile.name.first} ${data.profile.name.last}`,
 				data: data.storedData,
+				badges: [],
 				_pref: data.profile.preferences,
 				_isVerifed: data.profile.isVerified,
 				_pr: data,
@@ -70,14 +71,14 @@ module.exports = {
 			data = await db.findOne({ userID: user.id }),
 			pr = data.profile,
 			prg = {
-				"male": "♂️ **Male**",
-				"female": "♀️ **Female**",
-				"none": "🚫 **None**"
+				male: "♂️ **Male**",
+				female: "♀️ **Female**",
+				none: "🚫 **None**"
 			},
 			prs = {
-				"single": "🧍 **Single**",
-				"taken": "🧑‍🤝‍🧑 **Taken**",
-				"looking": "👀 **Looking**"
+				single: "🧍 **Single**",
+				taken: "🧑‍🤝‍🧑 **Taken**",
+				looking: "👀 **Looking**"
 			},
 			getFollowing = async () => {
 				let following = await bot.m.get("profiles").aggregate([{ $match: { "profile.followers": { $eq: user.id } } }]);
@@ -140,7 +141,6 @@ module.exports = {
 		const db = bot.m.get("profiles");
 		if (!query) return undefined;
 
-		m.edit(`${Emojis.loading} Searching...`);
 		let users = [];
 
 		const first = async () => {
@@ -197,9 +197,10 @@ module.exports = {
 		};
 
 		const third = async () => {
-			let user = findMember(m.guild, query),
-				guild = bot.guilds.get(guildID),
+			let guild = findGuild(bot, guildID),
 				bans = await guild.getBans();
+				
+			let user = findMember(guild, query);
 
 			if (!user) user = findUser(bot, query);
 			if (!user && developers.includes(author.id)) user = findBanned(bans, query);

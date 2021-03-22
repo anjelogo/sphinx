@@ -1,10 +1,10 @@
 const Emojis = require("../../Utils/emojis.json"),
 	{ guildID, colors } = require("../../Utils/config.json"),
-	{ findRole } = require("../../Utils/util");
+	{ findRole, findGuild } = require("../../Utils/util");
 
 module.exports = async (bot, user, emoji, type, msg) => {
 	const Session = await bot.m.get("reactionroles").findOne({ messageID: msg.id}),
-		guild = bot.guilds.get(guildID);
+		guild = findGuild(bot, guildID);
 
 	if (!Session || user.bot) return;
 

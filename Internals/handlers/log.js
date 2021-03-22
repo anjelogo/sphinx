@@ -1,14 +1,16 @@
 const { channels, colors, guildID, name } = require("../../Utils/config.json"),
 	Profile = require("../../Internals/handlers/profileHandler"),
 	Utils = require("../../Utils/util"),
-	Roles = require("../../Utils/roles.json");
+	Roles = require("../../Utils/roles.json"),
+	{ findChannel } = require("../../Utils/util");
 
 module.exports = {
 
-	async add (bot, user, moderator, action, time, reason = null) {
+	async add (bot, user, moderator, action, time, reason = null, audit = false) {
 		let db = bot.m.get("modlog"),
 			cases = await db.find({}),
-			guild = bot.guilds.get(guildID),
+			guild = Utils.findGuild(bot, guildID),
+			channel = Utils.findChannel(guild, channels.log),
 			caseNum = cases.length > 0 ? cases[cases.length - 1].caseNum + 1 : 1,
 			string = reason ? `${reason}${time ? ` | ${time}` : ""}` : `Moderator please do !reason ${caseNum}${time ? ` | ${time}` : ""}`,
 			embed = {
@@ -35,27 +37,31 @@ module.exports = {
 				],
 				color: colors[action],
 				timestamp: new Date()
-			},
-			m = await guild.channels.get(channels.log).createMessage({ embed });
+			};
 
-		let obj = {
-			caseNum,
-			userID: user.id,
-			moderator: moderator.id,
-			messageID: m.id,
-			action,
-			timestamp: Date.now(),
-			time: time && Number(time.slice(0, -1)) > 0 ? Date.now() + time.slice(0, -1)*(/(m|d)/.test(time) ? (/m/.test(time) ? 60000 : 86400000) : 0) : 0,
-			reason: string
-		};
+		//Check if casenum is used already
+		let Case = await db.findOne({ caseNum });
+		if (Case) return;
+
+		let m = await channel.createMessage({ embed }),
+			obj = {
+				caseNum,
+				userID: user.id,
+				moderator: moderator.id,
+				messageID: m.id,
+				action,
+				timestamp: Date.now(),
+				time: time && Number(time.slice(0, -1)) > 0 ? Date.now() + time.slice(0, -1)*(/(m|d)/.test(time) ? (/m/.test(time) ? 60000 : 86400000) : 0) : 0,
+				reason: string
+			};
 
 		await db.insert(obj);
-		await this.punish(bot, user, moderator, action, reason, caseNum, time);
-		return await this.auto(bot, user);
+		if (!audit) await this.punish(bot, user, moderator, action, reason, caseNum, time);
+		if (!audit) return await this.auto(bot, user);
 	},
 
 	async punish (bot, user, moderator, punishment, reason, caseNum, time){
-		const guild = bot.guilds.get(guildID),
+		const guild = Utils.findGuild(bot, guildID),
 			action = {
 				warn: "warned",
 				mute: "muted",
@@ -84,21 +90,22 @@ module.exports = {
 		try {
 			switch (punishment) {
 			case "warn": 
-				await user.createMessage({ embed });
+				user.createMessage({ embed });
 				break;
 			case "kick":
 				await user.createMessage({ embed });
-				await Profile.archive(bot, user);
-				await guild.kickMember(user.id, reason);
+				Profile.archive(bot, user);
+				guild.kickMember(user.id, reason);
 				break;
 			case "mute":
 				await user.createMessage({ embed });
-				await guild.addMemberRole(user.id, Roles.util.muted);
+				if (user.voiceState && user.voiceState.channelID) user.edit({ mute: true }, reason);
+				guild.addMemberRole(user.id, Roles.util.muted);
 				break;
 			case "ban":
 				await user.createMessage({ embed });
-				await guild.banMember(user.id, 0, string);
-				await Profile.archive(bot, user);
+				Profile.archive(bot, user);
+				guild.banMember(user.id, 0, string);
 				break;
 			}
 
@@ -120,6 +127,8 @@ module.exports = {
 				ban: 3
 			};
 
+		if (history.filter(c => c.action === "ban").length) return;
+
 		for (let Case of history) infractions += hierarchy[Case.action];
 		
 		if (infractions < 3) return;
@@ -128,14 +137,15 @@ module.exports = {
 
 		reason = `**[AUTOMOD]** ${infractions} Infractions`;
 
-		switch (punishment) {
-		case "mute": 
-			if (history.filter(c => c.action === "mute").length) return;
-			break;
-		case "ban": 
-			if (history.filter(c => c.action === "ban").length) return;
-			if (history.filter(c => c.action === "mute").length) await this.resolve(bot, history.filter(c => c.action === "mute")[0].caseNum, "**[AUTOMOD]** Unmuted for ban.", bot.user);
-			break;
+
+		if (history.filter(c => c.action === "mute").length) {
+			switch (punishment) {
+			case "ban":
+				await this.resolve(bot, history.filter(c => c.action === "mute")[0].caseNum, "**[AUTOMOD]** Unmuted for ban.", bot.user);
+				break;
+			case "mute":
+				return;
+			}
 		}
 
 		return await this.add(bot, user, bot.user, punishment, "7d", reason);
@@ -144,11 +154,12 @@ module.exports = {
 	async edit (bot, caseNum, reason, moderator) {
 		const db = bot.m.get("modlog"),
 			Case = await db.findOne({ caseNum }),
-			guild = moderator.guild;
+			guild = moderator.guild,
+			channel = findChannel(guild, channels.log);
 
 		if (!Case) return undefined;
 
-		let m = await guild.channels.get(channels.log).getMessage(Case.messageID);
+		let m = await channel.getMessage(Case.messageID);
 		if (!m) return;
 
 		let embed = m.embeds[0];
@@ -162,11 +173,13 @@ module.exports = {
 	async resolve (bot, caseNum, reason, moderator) {
 		const db = bot.m.get("modlog"),
 			Case = await db.findOne({ caseNum }),
-			guild = bot.guilds.get(guildID);
+			guild = Utils.findGuild(bot, guildID),
+			member = Utils.findMember(guild, Case.userID),
+			channel = Utils.findChannel(guild, channels.log);
 
 		if (!Case || Case.action === "resolved") return;
 
-		let m = await guild.channels.get(channels.log).getMessage(Case.messageID);
+		let m = await channel.getMessage(Case.messageID);
 		if (!m) return;
 
 		reason = reason ? reason : "No reason provided.";
@@ -183,7 +196,35 @@ module.exports = {
 		embed.fields[2].value = `${reason}\n~~${Case.reason}~~`;
 		m.edit({ embed });
 
-		return await db.findOneAndUpdate({ caseNum }, { $set: { moderator: moderator.id, resolved } });
+		await db.findOneAndUpdate({ caseNum }, { $set: { moderator: moderator.id, resolved } });
+
+		switch (Case.action) {
+		case "mute":
+			await member.createMessage({
+				embed: {
+					title: "You have been unmuted",
+					description: `You have been unmuted in ${name}`,
+					fields: [
+						{
+							name: "Moderator",
+							value: moderator.tag
+						}, {
+							name: "Reason",
+							value: reason
+						}
+					],
+					color: colors.resolved
+				}
+			});
+
+			if (member.voiceState.channelID) member.edit({ mute: false }, reason);
+			if (member.roles.includes(Roles.util.muted)) guild.removeMemberRole(member.id, Roles.util.muted);
+			break;
+		case "ban":
+			await guild.unbanMember(member.id, 0, reason);
+			break;
+		}
+		return;
 	},
 
 	async get (bot, type, parameter) {
@@ -209,31 +250,10 @@ module.exports = {
 
 		if (history && history.filter(c => c.action === "mute").length) return;
 
-		const warn = (reason, msgReason) => {
-			msg.author.createMessage({
-				embed: {
-					title: "You have been warned",
-					description: `You have been warned in ${name}.`,
-					fields: [
-						{
-							name: "Moderator",
-							value: bot.user.tag
-						}, {
-							name: "Reason",
-							value: `**[AUTOMOD]** ${msgReason}`
-						}
-					],
-					color: colors.warn
-				}
-			});
-
-			this.add(bot, msg.author, bot.user, "warn", null, reason);
-		};
-
 		if (await Utils.sentInvite(msg)) {
 			reason = `**[AUTOMOD]** Invite Link Sent.\n||${msg.content}||`;
 			await msg.delete();
-			warn(reason, "Don't post invite links.");
+			this.add(bot, msg.author, bot.user, "mute", "5m", reason);
 		}
 
 		if (data && data.lastMsg.content.toLowerCase() === msg.content.toLowerCase()) {
@@ -252,7 +272,7 @@ module.exports = {
 				msgCount++;
 				if (msgCount === 5) {
 					msg.delete();
-					warn("**[AUTOMOD]** Spamming", "Stop spamming!");
+					this.add(bot, msg.author, bot.user, "mute", "5m", reason);
 				}
 				else {
 					data.msgCount = msgCount;

@@ -30,7 +30,7 @@ module.exports = {
 
 		member = findMember(msg.guild, user.id);
 		if (member.id === msg.author.id) return m.edit(`${Emojis.x} You can't flag yourself, silly!`);
-		if (!member.punishable(msg.author) || user.id === bot.user.id) return m.edit(`${Emojis.x} You can't flag that user!`);
+		if (!member.punishable(msg.member) || user.id === bot.user.id) return m.edit(`${Emojis.x} You can't flag that user!`);
 
 		try {
 			warning = await sendWarning(m, msg.author);

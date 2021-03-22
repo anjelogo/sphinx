@@ -1,7 +1,8 @@
 const Profile = require("../../Internals/handlers/profileHandler"),
 	moment = require("moment"),
 	Emojis = require("../../Utils/emojis.json"),
-	{ guildID, channels } = require("../../Utils/config.json");
+	{ guildID, channels } = require("../../Utils/config.json"),
+	{ findGuild, findChannel } = require("../../Utils/util");
 
 module.exports = {
 	commands: ["bump"],
@@ -14,10 +15,12 @@ module.exports = {
 
 		if (Date.now() - data.profile.lastBumped < 28800000) return msg.channel.createMessage(`${Emojis.x} You can only bump every 8 hours! Try again \`${moment(data.profile.lastBumped + 28800000).fromNow()}\`.`);
 
-		const embed = await Profile.embed(bot, msg.member);
+		const embed = await Profile.embed(bot, msg.member),
+			guild = findGuild(bot, guildID),
+			channel = findChannel(guild, channels.newProfiles);
 		
 		try {
-			bot.guilds.get(guildID).channels.get(channels.newProfiles).createMessage({ content: msg.member.mention, embed });
+			channel.createMessage({ content: msg.member.mention, embed });
 			data.profile.lastBumped = Date.now();
 
 			await Profile.edit(bot, msg.member, data.profile);

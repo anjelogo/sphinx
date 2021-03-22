@@ -6,7 +6,7 @@ const bot = new Eris(require("./Utils/auth.json").token, {
 	getAllUsers: true,
 	defaultImageFormat: "png",
 	defaultImageSize: 1024,
-	intents: 16259
+	intents: 32767
 });
 
 bot.userMap = new Map();

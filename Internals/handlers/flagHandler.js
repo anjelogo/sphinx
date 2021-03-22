@@ -1,6 +1,6 @@
 const Wizard = require("../modules/wizards/wizard"),
 	Flag = require("../modules/flag"),
-	{ findUser } = require("../../Utils/util"),
+	{ findUser, findGuild, findChannel } = require("../../Utils/util"),
 	Config = require("../../Utils/config.json"),
 	log = require("./log");
 
@@ -9,11 +9,14 @@ module.exports = async (bot, user, emoji, msg) => {
 	if (!["✅", "❌"].includes(emoji.name)) return;
 	if (!Wizard.is(bot, user)) return;
 
-	let Session = await bot.m.get("wizards").findOne({ messageID: msg.id });
+	const Session = await bot.m.get("wizards").findOne({ messageID: msg.id });
 	if (!Session ) return;
 
-	let m = bot.guilds.get(Config.guildID).channels.get(Session.channelID).messages.get(Session.messageID);
-	if (!m) throw new Error("Could not find message!");
+	const guild = findGuild(bot, Config.guildID),
+		channel = findChannel(guild, Session.channelID),
+		m = await channel.getMessage(Session.messageID);
+
+	if (!guild || !channel || !m) throw new Error("Could not find guild/channel/message!");
 
 	let offender = findUser(bot, Session.data.offenderID);
 

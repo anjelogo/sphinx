@@ -15,5 +15,6 @@ module.exports = {
 		if (data) return msg.channel.createMessage(`${Emojis.x} You already have a profile.`);
 
 		stage(bot, msg.author, msg);
+		msg.delete();
 	}
 };

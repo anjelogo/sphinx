@@ -92,7 +92,7 @@ module.exports = {
 				if (!warning) return m.edit(`${Emojis.x} User cancelled operation.`);	
 				m.edit(`${Emojis.loading} Creating private channel...`);
 				
-				await createPrivate(bot, u1, u2);	
+				await createPrivate(bot, u1, [u2.id], { force: true });	
 			} catch (e) {
 				m.edit(`${Emojis.x} An error occurred.`);
 				throw new Error(e);
@@ -104,7 +104,6 @@ module.exports = {
 		case "delete": {
 			let m = await msg.channel.createMessage(`${Emojis.loading} Grabbing user information...`),
 				user = await Profile.search(bot, args[1], msg.author, m),
-				guild = bot.guilds.get(Config.guildID),
 				warning;
 
 			if (!user) return m.edit(`${Emojis.x} I couldn't find a user with the query \`${args[1]}\`.`);
@@ -112,7 +111,7 @@ module.exports = {
 			let data = await Profile.fetch(bot, user);
 			if (!data) return m.edit(`${Emojis.x} I couldn't find a profile for \`${user.username}\`.`);
 
-			const member = findMember(guild, user.id),
+			const member = findMember(msg.guild, user.id),
 				name = data.name;
 
 			try {

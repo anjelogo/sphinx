@@ -34,7 +34,7 @@ module.exports = {
 						{
 							$project: {
 								"userID": 1,
-								"profile.followers": {
+								"followers": {
 									$cond: {
 										if: {
 											$isArray: "$profile.followers"
@@ -47,9 +47,9 @@ module.exports = {
 								}
 							}
 						}
-					]),	
+					]),
 				sorted = data.sort((a, b) => {
-					return b.profile.followers - a.profile.followers;
+					return b.followers - a.followers;
 				}),
 				fields = [],
 				i = 0,
@@ -63,17 +63,17 @@ module.exports = {
 
 				fields.push({
 					name: `${index[i]} - ${uData.name}`,
-					value: `**${u.profile.followers}** followers`
+					value: `**${u.followers}** followers`
 				});
 
 				i++;
 			}
 
-			m.edit({embed: {
+			m.edit({ embed: {
 				title: "Most Followed Users",
 				color: colors.winered,
 				fields
-			}});
+			}, content: "" });
 
 			break;
 		}
@@ -82,7 +82,5 @@ module.exports = {
 			break;
 		}
 		}
-
-
 	}
 };

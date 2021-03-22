@@ -1,11 +1,13 @@
 const { maxChannelSize, guildID } = require("../../Utils/config.json"),
-	{ findMember } = require("../../Utils/util"),
+	{ findMember, findGuild } = require("../../Utils/util"),
 	compatibility = require("../modules/compatibility"),
 	createPrivate = require("../modules/createPrivate"),
 	{ fetch } = require("./profileHandler");
 
 module.exports = async (bot) => {
-	let guild = bot.guilds.get(guildID),
+	console.log("test");
+
+	let guild = findGuild(bot, guildID),
 		busy = false;
 
 	setInterval(async () => {
@@ -62,7 +64,7 @@ module.exports = async (bot) => {
 			}
 		}
 
-		if (found) await createPrivate(bot, user, match);
+		if (found) await createPrivate(bot, user, [match.id], { force: true });
 		busy = false;
 	};
 };

@@ -1,5 +1,4 @@
-const log = require("../../Internals/handlers/log"),
-	Emojis = require("../../Utils/emojis.json"),
+const Emojis = require("../../Utils/emojis.json"),
 	{ colors } = require("../../Utils/config.json"),
 	{ search } = require("../../Internals/handlers/profileHandler");
 
@@ -26,11 +25,12 @@ module.exports = {
 		if (!user) return m.edit(`${Emojis.x} I could not find a user called \`${args[0]}\``);
 
 		m.edit(`${Emojis.loading} Grabbing punishment history...`);
-		Cases = await log.get(bot, "user", user);
+		Cases = await bot.m.get("modlog").find({ userID: user.id });
 
 		if (Cases && Cases.length) {
 			Cases.forEach(c => {
 				let string = `\`Case #${c.caseNum} [${c.action.substring(0, 1).toUpperCase()}]\``;
+				c.resolved ? string = `~~${string}~~` : string;
 				arr.push(string);
 			});
 		}

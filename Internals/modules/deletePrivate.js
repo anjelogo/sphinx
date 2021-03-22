@@ -1,35 +1,33 @@
 const Config = require("../../Utils/config.json"),
 	{ warning } = require("../../Utils/emojis.json"),
-	{ isDeveloper } = require("../../Utils/util");
+	{ findMember, findChannel } = require("../../Utils/util");
 
-module.exports = async (bot, member, channel) => {
-	const cat = member.guild.channels.get(channel.parentID),
+module.exports = async (bot, member, channel, modmode = false) => {
+	const guild = member ? member.guild : null;
+
+	if (!guild) return;
+
+	const cat = findChannel(guild, channel.parentID),
 		db = bot.m.get("channels"),
 		chl = await db.findOne({ parent: cat.id });
 
 	if (!chl) return;
 
-	const voice = member.guild.channels.get(chl.voice),
-		text = member.guild.channels.get(chl.text);
+	const text = guild.channels.get(chl.text),
+		users = chl.members;
 
-	if (chl.modMode === true && !isDeveloper(member)) return text.createMessage(`${warning.red} This channel is currently in **MOD MODE**. This channel will not be deleted until a moderator lifts mod mode.`); 
+	if (chl.modMode === true && !modmode) return text.createMessage(`${warning.red} This channel is currently in **MOD MODE**. This channel will not be deleted until a moderator ends mod mode.`); 
 
 	await db.findOneAndDelete({ parent: cat.id });
-	if (voice.voiceMembers.size > 1) {
-		let user1 = member.guild.members.get(chl.members[0]),
-			user2 = member.guild.members.get(chl.members[1]);
-		
-		await user1.edit({ channelID: Config.channels.matchDefault });
-		await user2.edit({ channelID: Config.channels.matchDefault });
-	} else {
-		let user = member.guild.members.get(chl.members[member.id === chl.members[0] ? 1 : 0]),
-			voiceMembers = voice.voiceMembers.map(m => m.id);
 
-		if (voiceMembers.includes(user.id)) await user.edit({ channelID: Config.channels.matchDefault });
+	for (let user of users) {
+		let member = findMember(guild, user);
+
+		if (!member || !member.voiceState.channelID || member.voiceState.channelID !== chl.voice) continue;
+
+		await member.edit({ channelID: Config.channels.matchDefault });
 	}
 
-	await cat.channels.forEach(c => {
-		c.delete();
-	});
+	await cat.channels.forEach(c => c.delete());
 	await cat.delete();
 };

@@ -181,6 +181,12 @@ module.exports = {
 		return server.channels.find((r) => r.name.toLowerCase() === channel.toLowerCase()); // name
 	},
 
+	findGuild (bot, guild) {
+		if (!guild) return undefined;
+		if (/^\d+$/.test(guild)) return bot.guilds.get(guild);
+		return bot.guilds.find((g) => g.name.toLowerCase() === guild.toLowerCase());
+	},
+
 	isDeveloper (user) {
 		return (Config.developers.includes(user.id));
 	},

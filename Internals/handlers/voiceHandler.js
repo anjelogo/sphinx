@@ -1,4 +1,5 @@
-const Config = require("../../Utils/config.json"),
+const log = require("./log"),
+	Config = require("../../Utils/config.json"),
 	deletePrivate = require("../modules/deletePrivate"),
 	{ fetch } = require("./profileHandler"),
 	Emojis = require("../../Utils/emojis.json");
@@ -25,10 +26,20 @@ module.exports = async (bot, member, channel, bool = false) => {
 			return;
 		}
 
-		if (channels.includes(channel.id) && channel.voiceMembers.size <= 1) return deletePrivate(bot, member, channel);
+		if (channels.includes(channel.id) && channel.voiceMembers.size <= 1) {
+			setTimeout(() => {
+				return deletePrivate(bot, member, channel);
+			}, 1500);
+		}
 
 	} else if (!bool || bool === false) {
-		let data = await fetch(bot, member);
+		let data = await fetch(bot, member),
+			Cases = await log.get(bot, "user", member);
+
+		if (Cases.filter(c => c.action === "mute").length && !member.voiceState.mute)
+			member.edit({ mute: true }, Cases.filter(c => c.action === "mute")[0].reason);
+		else if (!Cases.filter(c => c.action === "mute").length && member.voiceState.mute === true)
+			member.edit({ mute: false });
 
 		if (data.profile.locked === true) {
 			await member.edit({ channelID: null });

@@ -32,7 +32,7 @@ module.exports = {
 		member = findMember(msg.guild, user.id);
 		if (member.id === msg.author.id) return m.edit(`${Emojis.x} You can't kick yourself, silly!`);
 		if (!member.kickable) return m.edit(`${Emojis.x} I can't kick that user!`);
-		if (!member.punishable(msg.author) || user.id === bot.user.id) return m.edit(`${Emojis.x} You can't kick that user!`);
+		if (!member.punishable(msg.member) || user.id === bot.user.id) return m.edit(`${Emojis.x} You can't kick that user!`);
 
 		try {
 			warning = await sendWarning(m, msg.author);
@@ -45,6 +45,6 @@ module.exports = {
 			throw new Error(e);
 		}
 
-		m.edit(`${Emojis.tick} Successfully kicked \`${member.tag}\` for \`${reason}.\``);
+		m.edit(`${Emojis.tick} Successfully kicked \`${member.tag}\`${reason ? ` for \`${reason}\`` : ""}.`);
 	}
 };

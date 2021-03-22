@@ -1,11 +1,11 @@
 const reactionRoles = require("../../Internals/handlers/reactionRoles"),
 	{ guildID } = require("../../Utils/config.json"),
-	{ findMember } = require("../../Utils/util");
+	{ findMember, findGuild } = require("../../Utils/util");
 
 module.exports = (bot) => {
 
 	bot.on("messageReactionRemove", async (msg, emoji, userID) => {
-		const guild = bot.guilds.get(guildID),
+		const guild = findGuild(bot, guildID),
 			member = findMember(guild, userID);
 
 		if (member.bot) return;

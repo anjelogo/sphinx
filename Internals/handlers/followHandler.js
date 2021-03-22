@@ -11,7 +11,6 @@ module.exports = {
 		if (!friends) return false;
 
 		return friends.includes(user1.id);
-
 	},
 
 	async follow (bot, user1, user2) {

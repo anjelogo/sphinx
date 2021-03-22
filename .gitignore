@@ -2,3 +2,6 @@
 Utils/auth.json
 node_modules/*
 *.cmd
+package-lock.json
+package-lock.json
+package.json

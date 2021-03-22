@@ -24,7 +24,7 @@ module.exports = {
 			if (channel.modMode && isDeveloper(msg.author)) {
 				m.edit(`${Emojis.warning.yellow} A moderator has ended the session while in **MOD MODE**. This channel will be deleted in *10 seconds*.`);
 				setTimeout(async () => {
-					return await deletePrivate(bot, msg.member, msg.channel);
+					return await deletePrivate(bot, msg.member, msg.channel, true);
 				}, 10000);
 			} else
 				return await deletePrivate(bot, msg.member, msg.channel);

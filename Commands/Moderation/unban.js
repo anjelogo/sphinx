@@ -39,13 +39,12 @@ module.exports = {
 			if (!warning) return m.edit(`${Emojis.x} User cancelled operation.`);
 			m.edit(`${Emojis.loading} Unbanning user...`);
 
-			await msg.guild.unbanMember(user.id, reason);
 			await log.resolve(bot, caseNum, reason, msg.author);
 		} catch (e) {
 			m.edit(`${Emojis.x} An error occurred.`);
 			throw new Error(e);
 		}
 
-		m.edit(`${Emojis.tick} Successfully unbanned \`${user.tag}\` for \`${reason}.\``);
+		m.edit(`${Emojis.tick} Successfully unbanned \`${user.tag}\`${reason ? ` for \`${reason}\`` : ""}.`);
 	}
 };

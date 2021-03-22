@@ -1,6 +1,7 @@
 const log = require("../../Internals/handlers/log"),
 	Emojis = require("../../Utils/emojis.json"),
 	{ channels } = require("../../Utils/config.json");
+const { findChannel } = require("../../Utils/util");
 
 module.exports = {
 	commands: [
@@ -22,7 +23,8 @@ module.exports = {
 
 		if (!Case) return m.edit(`${Emojis.x} Couldn't find a case with the number \`${caseNum}\`.`);
 
-		const ms = await bot.channels.get(channels.log).getMessage(Case.messageID);
+		const channel = findChannel(msg.guild, channels.log),
+			ms = await channel.getMessage(Case.messageID);
 		
 		if (!ms) return m.edit(`${Emojis.x} I couldn't load embed data!`);
 		let embed = ms.embeds[0];

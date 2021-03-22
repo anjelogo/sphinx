@@ -1,6 +1,5 @@
 const log = require("../../Internals/handlers/log"),
 	Emojis = require("../../Utils/emojis.json"),
-	Roles = require("../../Utils/roles.json"),
 	{ colors, name } = require("../../Utils/config.json"),
 	Profile = require("../../Internals/handlers/profileHandler"),
 	{ findMember, sendWarning } = require("../../Utils/util");
@@ -59,13 +58,13 @@ module.exports = {
 					color: colors.resolved
 				}
 			});
-			if (member.roles.includes(Roles.util.muted)) msg.guild.removeMemberRole(user.id, Roles.util.muted);
+
 			await log.resolve(bot, caseNum, reason, msg.member);
 		} catch (e) {
 			m.edit(`${Emojis.x} An error occurred.`);
 			throw new Error(e);
 		}
 
-		m.edit(`${Emojis.tick} Successfully unmuted \`${member.tag}\` for \`${reason}.\``);
+		m.edit(`${Emojis.tick} Successfully unmuted \`${member.tag}\`${reason ? ` for \`${reason}\`` : ""}.`);
 	}
 };
