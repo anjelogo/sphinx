@@ -36,9 +36,9 @@ module.exports = async (bot, member, channel, bool = false) => {
 		let data = await fetch(bot, member),
 			Cases = await log.get(bot, "user", member);
 
-		if (Cases.filter(c => c.action === "mute").length && !member.voiceState.mute)
+		if (Cases && Cases.filter(c => c.action === "mute").length && !member.voiceState.mute)
 			member.edit({ mute: true }, Cases.filter(c => c.action === "mute")[0].reason);
-		else if (!Cases.filter(c => c.action === "mute").length && member.voiceState.mute === true)
+		else if (Cases && !Cases.filter(c => c.action === "mute").length && member.voiceState.mute === true)
 			member.edit({ mute: false });
 
 		if (data.profile.locked === true) {

@@ -11,11 +11,11 @@ module.exports = (bot) => {
 			const audit = await member.guild.getAuditLogs(1, undefined, 24),
 				moderator = audit.entries[0].user;
 
-			if (Cases.filter(c => c.action === "mute").length) return;
+			if (Cases && Cases.filter(c => c.action === "mute").length) return;
 
 			await log.add(bot, member, moderator, "mute", null, null, true);
 		} else if (member.voiceState.mute === false && oldState.mute === true) {
-			if (!Cases.filter(c => c.action === "mute").length) return;
+			if ((Cases && !Cases.filter(c => c.action === "mute").length) || !Cases) return;
 
 			const caseNum = Cases.filter(c => c.action === "mute")[0].caseNum,
 				audit = await member.guild.getAuditLogs(1, undefined, 24),
